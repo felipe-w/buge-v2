@@ -1,26 +1,134 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Chart Colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar Colors */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Status Mappings */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  /* Financial Mappings */
+  --color-income: var(--income);
+  --color-income-foreground: var(--income-foreground);
+  --color-expense: var(--expense);
+  --color-expense-foreground: var(--expense-foreground);
+
+  /* Border Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Base Radius */
+  --radius: 0.5rem;
+
+  /* Core Colors */
+  --background: oklch(0.985 0.001 224); /* Slightly darker off-white */
+  --foreground: oklch(0.2 0.01 350.07);
+  --card: oklch(1 0 224); /* Pure white */
+  --card-foreground: oklch(0.2 0.01 350.07);
+  --popover: oklch(1 0 224); /* Pure white */
+  --popover-foreground: oklch(0.2 0.01 350.07);
+  --primary: oklch(0.353 0.051 351.51);
+  --primary-foreground: oklch(0.958 0.008 348.04);
+  --secondary: oklch(0.939 0.006 56.35); /* Light Warm Gray */
+  --secondary-foreground: oklch(0.217 0.011 55.72);
+  --muted: oklch(0.91 0.004 56.35); /* NEW - Darker, less saturated */
+  --muted-foreground: oklch(0.55 0.02 56.35); /* NEW - Adjusted contrast */
+  --accent: oklch(0.83 0.0719 66.56);
+  --accent-foreground: oklch(0.252 0.03 34.63);
+  --destructive: oklch(0.603 0.178 25.05);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.91 0.004 56.35); /* NEW - Matches muted, aligned hue */
+  --input: oklch(0.88 0.005 56.35); /* NEW - Darker than border, aligned hue */
+  --ring: oklch(0.353 0.051 351.51);
+
+  /* --- Status Colors (Light) --- */
+  --success: oklch(70% 0.12 145);
+  --success-foreground: oklch(15% 0.04 145);
+  --warning: oklch(80% 0.13 85);
+  --warning-foreground: oklch(30% 0.08 85);
+  --info: oklch(70% 0.08 250);
+  --info-foreground: oklch(20% 0.04 250);
+
+  /* --- Financial Colors (Light) --- */
+  --income: oklch(0.78 0.0323 209.16);
+  --income-foreground: oklch(0.36 0.024 212.86);
+  --expense: oklch(79.1% 0.07 68.9);
+  --expense-foreground: oklch(25% 0.03 69);
+
+  /* Chart Colors */
+  --chart-1: var(--primary);
+  --chart-2: oklch(0.482 0.09 352.6);
+  --chart-3: oklch(0.571 0.072 351.06);
+  --chart-4: oklch(0.35 0.071 353.04);
+  --chart-5: oklch(0.304 0.051 352.07);
+
+  /* Sidebar Colors */
+  --sidebar: oklch(0.939 0.006 56.35);
+  --sidebar-foreground: oklch(0.217 0.011 55.72);
+  --sidebar-primary: oklch(0.353 0.051 351.51);
+  --sidebar-primary-foreground: oklch(0.958 0.008 348.04);
+  --sidebar-accent: oklch(0.749 0.06 34.43);
+  --sidebar-accent-foreground: oklch(0.21 0.028 34.7);
+  --sidebar-border: oklch(0.91 0.004 56.35); /* NEW - Use new border */
+  --sidebar-ring: oklch(0.353 0.051 351.51);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+  }
 }

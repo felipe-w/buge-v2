@@ -1,0 +1,40 @@
+# Build output / Cache directories
+.next/
+out/
+build/
+dist/
+.swc/
+
+# Dependencies
+node_modules/
+
+# Lock files (managed by package managers)
+package-lock.json
+pnpm-lock.yaml
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+lcov-report/
+
+# Environment variables (often unnecessary to format)
+.env*
+!.env.example
+!.env.sample
+
+# Coverage directory
+coverage/
+
+# System files
+.DS_Store
+
+# Version Control Folders
+.git/
+.svn/
+.hg/
+
+# Package manager cache/metadata (if stored locally)
+# Adjust based on your package manager if needed
+.pnpm-store/
