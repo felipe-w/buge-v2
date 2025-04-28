@@ -11,30 +11,30 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { Group, User } from "@/lib/types";
+import { GroupWithMembers, User } from "@/lib/types";
 import { Menu } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { UserDropdown } from "./user-dropdown";
 
-type NavItem = {
+interface NavItem {
   label: string;
   url: string;
-};
+}
 
-type StackedLayoutProps = {
+interface StackedLayoutProps {
   children: React.ReactNode;
   navItems: NavItem[];
   logoUrl: string;
-  groups: Group[];
+  groups: GroupWithMembers[];
   user: User;
-};
+}
 
 export function DashboardLayout({ children, navItems, logoUrl, groups, user }: StackedLayoutProps) {
   const pathname = usePathname();
 
   const isActive = React.useCallback(
-    (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url)),
+    (url: string) => (url === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(url)),
     [pathname],
   );
 
@@ -51,7 +51,7 @@ export function DashboardLayout({ children, navItems, logoUrl, groups, user }: S
                 aria-label="Open navigation"
                 className="bg-foreground/40 text-primary-foreground/90 hover:bg-foreground/60 hover:text-background"
               >
-                <Menu className="size-6" />
+                <Menu size={24} />
               </Button>
             </SheetTrigger>
           </div>
@@ -59,7 +59,7 @@ export function DashboardLayout({ children, navItems, logoUrl, groups, user }: S
           <div className="min-w-0 flex-1">
             {/* Desktop Navbar */}
             <div className="flex items-center gap-4 py-2">
-              <Link href="/" aria-label="Home" className="mx-4 py-0.5 max-lg:hidden">
+              <Link href="/dashboard" aria-label="Home" className="mx-4 py-0.5 max-lg:hidden">
                 <img src={logoUrl} alt="Logo" className="h-8 w-10" />
               </Link>
 
@@ -95,7 +95,7 @@ export function DashboardLayout({ children, navItems, logoUrl, groups, user }: S
           <div className="flex h-full flex-col">
             <div className="border-foreground/5 flex flex-col border-b p-4">
               <div className="mx-auto flex pt-2">
-                <Link href="/" aria-label="Home">
+                <Link href="/dashboard" aria-label="Home">
                   <img src={logoUrl} alt="Logo" className="w-16" />
                 </Link>
               </div>

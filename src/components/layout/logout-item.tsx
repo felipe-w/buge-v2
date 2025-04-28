@@ -18,7 +18,7 @@ export default function LogoutItem() {
 
   return (
     <DropdownMenuItem onClick={handleLogout}>
-      <LogOut className="mr-2 size-4" />
+      <LogOut className="mr-2" />
       <span>Sair</span>
     </DropdownMenuItem>
   );

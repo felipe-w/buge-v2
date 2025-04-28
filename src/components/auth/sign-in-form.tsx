@@ -7,11 +7,11 @@ import { AlertError } from "@/components/ui/alert";
 import { SubmitButton } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signInWithEmailOTP } from "@/server/actions/user-actions";
+import { signInAction } from "@/server/actions/user-actions";
 import Link from "next/link";
 
 export default function SignInForm() {
-  const [state, formAction, isPending] = useActionState(signInWithEmailOTP, {
+  const [state, formAction, isPending] = useActionState(signInAction, {
     success: false,
     message: "",
   });
@@ -35,7 +35,7 @@ export default function SignInForm() {
         <div className="text-center text-sm">
           Não tem uma conta?{" "}
           <Link href="/sign-up" className="underline underline-offset-4">
-            Faça cadastro
+            Cadastre-se
           </Link>
         </div>
       </div>

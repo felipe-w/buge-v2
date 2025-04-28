@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { date, index, numeric, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
-import { bankAccounts } from "./bank-accounts-schema";
+import { accounts } from "./accounts-schema";
 import { budgets } from "./budgets-schema";
 import { transactions } from "./transactions-schema";
 
@@ -11,9 +11,9 @@ export const statements = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    bankAccountId: uuid("bank_account_id")
+    accountId: uuid("account_id")
       .notNull()
-      .references(() => bankAccounts.id, { onDelete: "cascade" }),
+      .references(() => accounts.id, { onDelete: "cascade" }),
     budgetId: uuid("budget_id").references(() => budgets.id, {
       onDelete: "set null",
     }),
@@ -39,13 +39,13 @@ export const statements = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [index("idx_statements_bank_account_id").on(t.bankAccountId)],
+  (t) => [index("idx_statements_account_id").on(t.accountId)],
 );
 
 export const statementsRelations = relations(statements, ({ one, many }) => ({
-  bankAccount: one(bankAccounts, {
-    fields: [statements.bankAccountId],
-    references: [bankAccounts.id],
+  account: one(accounts, {
+    fields: [statements.accountId],
+    references: [accounts.id],
   }),
   budget: one(budgets, {
     fields: [statements.budgetId],

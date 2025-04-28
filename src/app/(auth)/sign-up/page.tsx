@@ -1,4 +1,4 @@
-import Loading from "@/app/loading";
+import Loading from "@/app/(auth)/loading";
 import SignUpForm from "@/components/auth/sign-up-form";
 import { Suspense } from "react";
 

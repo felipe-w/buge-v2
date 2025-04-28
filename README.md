@@ -4,10 +4,12 @@
 
 [ ]
 
-### GROUPS
+### ACCOUNTS
 
-[ ] loadUserGroups precisa chamar quando houver qualquer modificação em grupos
+[ ] Tudo relacionado a reconcile
+[ ] deleteAction precisa configurar para quando tiver transações, cascade, etc etc etc
+[ ] todo o display quando tiver transações
 
 ### LATER
 
-[ ] Colocar o resend no lugar de enviar o email OTP
+[ ] AUTH: Colocar o resend no lugar de enviar o email OTP

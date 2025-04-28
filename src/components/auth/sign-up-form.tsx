@@ -7,11 +7,11 @@ import { AlertError } from "@/components/ui/alert";
 import { SubmitButton } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signUpWithEmailOTP } from "@/server/actions/user-actions";
+import { signUpAction } from "@/server/actions/user-actions";
 import Link from "next/link";
 
 export default function SignUpForm() {
-  const [state, formAction, isPending] = useActionState(signUpWithEmailOTP, {
+  const [state, formAction, isPending] = useActionState(signUpAction, {
     success: false,
     message: "",
     errors: undefined,

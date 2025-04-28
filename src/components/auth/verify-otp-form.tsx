@@ -1,6 +1,6 @@
 "use client";
 
-import { verifyOTPAndLogin } from "@/server/actions/user-actions";
+import { verifyOTPAction } from "@/server/actions/user-actions";
 import Form from "next/form";
 import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
 export default function VerifyOTPForm() {
-  const [state, formAction, isPending] = useActionState(verifyOTPAndLogin, {
+  const [state, formAction, isPending] = useActionState(verifyOTPAction, {
     success: false,
     message: "",
   });

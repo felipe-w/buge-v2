@@ -1,7 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { users } from "./auth-schema";
-import { bankAccounts } from "./bank-accounts-schema";
+import { accounts } from "./accounts-schema";
+import { authUsers } from "./auth-schema";
 import { budgets } from "./budgets-schema";
 import { categories } from "./categories-schema";
 
@@ -15,7 +15,7 @@ export const groups = pgTable(
     name: text("name").notNull(),
     ownerId: text("owner_id")
       .notNull()
-      .references(() => users.id),
+      .references(() => authUsers.id),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
@@ -25,12 +25,12 @@ export const groups = pgTable(
 );
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
-  owner: one(users, {
+  owner: one(authUsers, {
     fields: [groups.ownerId],
-    references: [users.id],
+    references: [authUsers.id],
   }),
-  members: many(groupMembers),
-  bankAccounts: many(bankAccounts),
+  groupMembers: many(groupMembers),
+  accounts: many(accounts),
   categories: many(categories),
   budgets: many(budgets),
 }));
@@ -47,7 +47,7 @@ export const groupMembers = pgTable(
       .references(() => groups.id, { onDelete: "cascade" }),
     userId: text("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => authUsers.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
@@ -65,8 +65,8 @@ export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
     fields: [groupMembers.groupId],
     references: [groups.id],
   }),
-  user: one(users, {
+  user: one(authUsers, {
     fields: [groupMembers.userId],
-    references: [users.id],
+    references: [authUsers.id],
   }),
 }));

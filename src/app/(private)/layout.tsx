@@ -1,37 +1,35 @@
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { auth } from "@/lib/auth";
+import { User } from "@/lib/types";
 import { getUserGroups } from "@/server/data/groups";
+import { getUserByEmail } from "@/server/data/users";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 const navItems = [
   { label: "Home", url: "/dashboard" },
-  { label: "Relatórios", url: "/reports" },
-  { label: "Orçamentos", url: "/budgets" },
-  { label: "Transações", url: "/transactions" },
-  { label: "Extratos", url: "/statements" },
-  { label: "Contas", url: "/accounts" },
-  { label: "Categorias", url: "/categories" },
+  { label: "Relatórios", url: "/dashboard/reports" },
+  { label: "Orçamentos", url: "/dashboard/budgets" },
+  { label: "Transações", url: "/dashboard/transactions" },
+  { label: "Extratos", url: "/dashboard/statements" },
+  { label: "Contas", url: "/dashboard/accounts" },
+  { label: "Categorias", url: "/dashboard/categories" },
 ];
 
-export default async function AppLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/sign-in");
 
-  if (!session) {
-    redirect("/sign-in");
+  let user: User | undefined;
+  if (!session.user.selectedGroupId) {
+    user = await getUserByEmail(session.user.email);
   }
 
-  const groups = await getUserGroups();
+  const userGroups = await getUserGroups();
 
   return (
     <>
-      <DashboardLayout navItems={navItems} logoUrl="/logo.svg" groups={groups} user={session.user}>
+      <DashboardLayout navItems={navItems} logoUrl="/logo.svg" groups={userGroups} user={user ?? session.user}>
         {children}
       </DashboardLayout>
     </>

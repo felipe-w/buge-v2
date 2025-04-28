@@ -1,9 +1,9 @@
 import { Separator } from "../ui/separator";
 
-type HeadingProps = {
+interface HeadingProps {
   title: string;
   actions?: React.ReactNode;
-};
+}
 
 export function Heading({ title, actions }: HeadingProps) {
   return (

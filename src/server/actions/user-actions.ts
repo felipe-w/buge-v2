@@ -4,10 +4,11 @@ import { auth } from "@/lib/auth";
 import { AuthFormSchema, FormState, VerifyOTPFormSchema } from "@/lib/types";
 import { validateFormData, ValidationError } from "@/lib/validate-form-data";
 import { redirect } from "next/navigation";
-import { getUserByEmail } from "../data/users";
+import { createGroup } from "../data/groups";
+import { getUserByEmail, setSelectedGroupId } from "../data/users";
 
 // Sign-up with email OTP
-export async function signUpWithEmailOTP(prevState: FormState, formData: FormData): Promise<FormState> {
+export async function signUpAction(prevState: FormState, formData: FormData): Promise<FormState> {
   let email: string;
 
   try {
@@ -36,7 +37,7 @@ export async function signUpWithEmailOTP(prevState: FormState, formData: FormDat
 }
 
 // Sign-in with email OTP
-export async function signInWithEmailOTP(prevState: FormState, formData: FormData): Promise<FormState> {
+export async function signInAction(prevState: FormState, formData: FormData): Promise<FormState> {
   let email: string;
 
   try {
@@ -69,7 +70,7 @@ export async function signInWithEmailOTP(prevState: FormState, formData: FormDat
 }
 
 // Verify OTP and complete login
-export async function verifyOTPAndLogin(prevState: FormState, formData: FormData): Promise<FormState> {
+export async function verifyOTPAction(prevState: FormState, formData: FormData): Promise<FormState> {
   let email: string;
   let otp: string;
 
@@ -78,12 +79,7 @@ export async function verifyOTPAndLogin(prevState: FormState, formData: FormData
     email = validated.email;
     otp = validated.otp;
 
-    await auth.api.signInEmailOTP({
-      body: {
-        email,
-        otp,
-      },
-    });
+    await auth.api.signInEmailOTP({ body: { email, otp } });
   } catch (error) {
     console.error("OTP verification error:", error);
     return {
@@ -97,4 +93,19 @@ export async function verifyOTPAndLogin(prevState: FormState, formData: FormData
   }
 
   redirect("/dashboard");
+}
+
+// this is run after the user is created, directly on auth.ts
+export async function setupNewUserAction(id: string) {
+  try {
+    const group = await createGroup("Padrão", id, true);
+    await setSelectedGroupId(group.id, id);
+  } catch (error) {
+    console.error("Error setting up new user:", error);
+    throw new Error("Erro ao configurar novo usuário");
+  }
+}
+
+export async function setSelectedGroupIdAction(userId: string, groupId: string) {
+  await setSelectedGroupId(groupId, userId);
 }

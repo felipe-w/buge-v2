@@ -1,21 +1,33 @@
 import { db } from "@/lib/db/drizzle";
-import { accounts, sessions, users, verifications } from "@/lib/db/schemas/auth-schema";
+import { setupNewUserAction } from "@/server/actions/user-actions";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
 import { headers } from "next/headers";
-
+import { authAccounts, authSessions, authUsers, authVerifications } from "./db/schemas/auth-schema";
+import { AuthUser } from "./types";
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
-      user: users,
-      account: accounts,
-      verification: verifications,
-      session: sessions,
+      user: authUsers,
+      account: authAccounts,
+      verification: authVerifications,
+      session: authSessions,
     },
   }),
+  user: {
+    deleteUser: {
+      enabled: true,
+    },
+    additionalFields: {
+      selectedGroupId: {
+        type: "string",
+        required: false,
+      },
+    },
+  },
   session: {
     expiresIn: 60 * 60 * 24 * 90, // 90 days
     cookieCache: {
@@ -54,11 +66,22 @@ export const auth = betterAuth({
       },
     }),
   ],
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          setupNewUserAction(user.id);
+        },
+      },
+    },
+  },
 });
 
-export async function getCurrentUserId(): Promise<string | undefined> {
+export async function isAuthenticated(): Promise<AuthUser> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  return session?.user?.id;
+  if (!session?.user) throw new Error("Usuário não autenticado");
+
+  return session.user as AuthUser;
 }

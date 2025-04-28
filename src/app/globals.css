@@ -93,7 +93,7 @@
   --ring: oklch(0.353 0.051 351.51);
 
   /* --- Status Colors (Light) --- */
-  --success: oklch(70% 0.12 145);
+  --success: oklch(85% 0.08 145);
   --success-foreground: oklch(15% 0.04 145);
   --warning: oklch(80% 0.13 85);
   --warning-foreground: oklch(30% 0.08 85);

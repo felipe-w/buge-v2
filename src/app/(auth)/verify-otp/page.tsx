@@ -1,4 +1,4 @@
-import Loading from "@/app/loading";
+import Loading from "@/app/(auth)/loading";
 import VerifyOTPForm from "@/components/auth/verify-otp-form";
 import { Suspense } from "react";
 
