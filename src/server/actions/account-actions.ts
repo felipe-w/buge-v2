@@ -9,7 +9,7 @@ import { createAccount, deleteAccount, editAccount, transferAccountTransactions 
 export async function createAccountAction(prevState: FormState, formData: FormData): Promise<FormState> {
   try {
     const validated = validateFormData(formData, NewAccountSchema);
-    await createAccount(validated.name, validated.type, validated.groupId);
+    await createAccount({ name: validated.name, type: validated.type, groupId: validated.groupId });
 
     revalidatePath("/dashboard/accounts");
 
@@ -32,7 +32,7 @@ export async function createAccountAction(prevState: FormState, formData: FormDa
 export async function editAccountAction(prevState: FormState, formData: FormData): Promise<FormState> {
   try {
     const validated = validateFormData(formData, EditAccountSchema);
-    await editAccount(validated.id, validated.name, validated.type);
+    await editAccount({ id: validated.id, name: validated.name, type: validated.type });
 
     revalidatePath("/dashboard/accounts");
 
@@ -57,13 +57,17 @@ export async function deleteAccountAction(prevState: FormState, formData: FormDa
     const validated = validateFormData(formData, DeleteAccountSchema);
 
     if (validated.deleteOption === "transfer" && validated.transferTo) {
-      await transferAccountTransactions(validated.id, validated.groupId, validated.transferTo);
+      await transferAccountTransactions({
+        id: validated.id,
+        groupId: validated.groupId,
+        destinationId: validated.transferTo,
+      });
     } else if (validated.deleteOption === "cascade") {
       // TODO: finalize cascade and invoke deleteAccountTransactions
       // await deleteAccountTransactions(validated.id, validated.groupId);
     }
 
-    await deleteAccount(validated.id, validated.groupId);
+    await deleteAccount({ id: validated.id, groupId: validated.groupId });
   } catch (error) {
     return {
       success: false,

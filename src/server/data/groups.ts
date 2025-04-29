@@ -3,6 +3,7 @@ import "server-only";
 import { isAuthenticated } from "@/lib/auth";
 import { db } from "@/lib/db/drizzle";
 import { groupMembers, groups } from "@/lib/db/schemas/groups-schema";
+import { EditGroup, NewGroup, NewGroupMember, RemoveGroupMember, TransferOwnership } from "@/lib/types";
 import { and, eq, exists } from "drizzle-orm";
 import { getUserByEmail } from "./users";
 
@@ -25,7 +26,7 @@ export async function getUserGroups() {
   });
 }
 
-export async function createGroup(name: string, ownerId: string, newUser: boolean = false) {
+export async function createGroup({ name, ownerId, newUser }: NewGroup & { newUser?: boolean }) {
   if (!newUser) {
     await isAuthenticated();
   }
@@ -38,17 +39,17 @@ export async function createGroup(name: string, ownerId: string, newUser: boolea
   });
 }
 
-export async function editGroup(id: string, name: string) {
+export async function editGroup({ id, name }: EditGroup) {
   await isAuthenticated();
-  await checkGroupOwnership(id);
+  await checkGroupOwnership({ groupId: id });
 
   const result = await db.update(groups).set({ name }).where(eq(groups.id, id)).returning();
   return result[0];
 }
 
-export async function deleteGroup(id: string, name: string) {
+export async function deleteGroup({ id, name }: EditGroup) {
   await isAuthenticated();
-  await checkGroupOwnership(id);
+  await checkGroupOwnership({ groupId: id });
 
   const result = await db
     .delete(groups)
@@ -58,11 +59,11 @@ export async function deleteGroup(id: string, name: string) {
   if (!result.length) throw new Error("Grupo não encontrado");
 }
 
-export async function addMember(groupId: string, email: string) {
+export async function addMember({ groupId, email }: NewGroupMember) {
   await isAuthenticated();
-  await checkGroupOwnership(groupId);
+  await checkGroupOwnership({ groupId });
 
-  const userToAdd = await getUserByEmail(email);
+  const userToAdd = await getUserByEmail({ email });
   if (!userToAdd) throw new Error("Usuário não encontrado");
 
   const existingMember = await db
@@ -76,21 +77,21 @@ export async function addMember(groupId: string, email: string) {
   return await db.insert(groupMembers).values({ groupId, userId: userToAdd.id });
 }
 
-export async function removeMember(groupId: string, userId: string) {
+export async function removeMember({ groupId, userId }: RemoveGroupMember) {
   await isAuthenticated();
-  await checkGroupOwnership(groupId);
+  await checkGroupOwnership({ groupId });
 
   await db.delete(groupMembers).where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)));
 }
 
-export async function transferOwnership(id: string, newOwnerId: string) {
+export async function transferOwnership({ id, ownerId }: TransferOwnership) {
   await isAuthenticated();
-  await checkGroupOwnership(id);
+  await checkGroupOwnership({ groupId: id });
 
-  await db.update(groups).set({ ownerId: newOwnerId }).where(eq(groups.id, id));
+  await db.update(groups).set({ ownerId }).where(eq(groups.id, id));
 }
 
-export async function checkGroupOwnership(groupId: string) {
+export async function checkGroupOwnership({ groupId }: { groupId: string }) {
   const { id: userId } = await isAuthenticated();
 
   const group = await db

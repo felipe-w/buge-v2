@@ -45,7 +45,7 @@ export async function signInAction(prevState: FormState, formData: FormData): Pr
     email = validated.email;
 
     // check if user exists
-    const user = await getUserByEmail(email);
+    const user = await getUserByEmail({ email });
     if (!user) throw new Error("Usuário não encontrado");
 
     await auth.api.sendVerificationOTP({
@@ -96,16 +96,16 @@ export async function verifyOTPAction(prevState: FormState, formData: FormData):
 }
 
 // this is run after the user is created, directly on auth.ts
-export async function setupNewUserAction(id: string) {
+export async function setupNewUserAction({ id, name }: { id: string; name: string }) {
   try {
-    const group = await createGroup("Padrão", id, true);
-    await setSelectedGroupId(group.id, id);
+    const group = await createGroup({ name, ownerId: id, newUser: true });
+    await setSelectedGroupId({ groupId: group.id, userId: id });
   } catch (error) {
     console.error("Error setting up new user:", error);
     throw new Error("Erro ao configurar novo usuário");
   }
 }
 
-export async function setSelectedGroupIdAction(userId: string, groupId: string) {
-  await setSelectedGroupId(groupId, userId);
+export async function setSelectedGroupIdAction({ groupId, userId }: { groupId: string; userId: string }) {
+  await setSelectedGroupId({ groupId, userId });
 }

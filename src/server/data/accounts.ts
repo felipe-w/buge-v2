@@ -8,7 +8,7 @@ import { AccountType } from "@/lib/types";
 import { count, eq, getTableColumns } from "drizzle-orm";
 import { checkGroupOwnership } from "./groups";
 
-export async function getGroupAccounts(groupId: string) {
+export async function getGroupAccounts({ groupId }: { groupId: string }) {
   await isAuthenticated();
 
   return await db
@@ -22,7 +22,7 @@ export async function getGroupAccounts(groupId: string) {
     .groupBy(accounts.id);
 }
 
-export async function getAccountAndTransactions(accountId: string) {
+export async function getAccountAndTransactions({ accountId }: { accountId: string }) {
   await isAuthenticated();
 
   return await db.query.accounts.findFirst({
@@ -38,30 +38,38 @@ export async function getAccountAndTransactions(accountId: string) {
   });
 }
 
-export async function createAccount(name: string, type: AccountType, groupId: string) {
+export async function createAccount({ name, type, groupId }: { name: string; type: AccountType; groupId: string }) {
   await isAuthenticated();
 
   return await db.insert(accounts).values({ name, type, groupId });
 }
 
-export async function editAccount(id: string, name: string, type: AccountType) {
+export async function editAccount({ id, name, type }: { id: string; name: string; type: AccountType }) {
   await isAuthenticated();
 
   return await db.update(accounts).set({ name, type }).where(eq(accounts.id, id));
 }
 
-export async function deleteAccount(id: string, groupId: string) {
+export async function deleteAccount({ id, groupId }: { id: string; groupId: string }) {
   await isAuthenticated();
-  await checkGroupOwnership(groupId);
+  await checkGroupOwnership({ groupId });
 
   // need to manually delete transactions in order to deal with linked transactions
 
   return await db.delete(accounts).where(eq(accounts.id, id));
 }
 
-export async function transferAccountTransactions(id: string, groupId: string, destinationId: string) {
+export async function transferAccountTransactions({
+  id,
+  groupId,
+  destinationId,
+}: {
+  id: string;
+  groupId: string;
+  destinationId: string;
+}) {
   await isAuthenticated();
-  await checkGroupOwnership(groupId);
+  await checkGroupOwnership({ groupId });
 
   return await db.update(transactions).set({ accountId: destinationId }).where(eq(transactions.accountId, id));
 }

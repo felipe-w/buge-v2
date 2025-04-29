@@ -13,7 +13,7 @@ export default async function AccountsPage({
   searchParams: Promise<{ success?: string; message?: string }>;
 }) {
   const { selectedGroupId: groupId } = await getCurrentUser();
-  const accounts = await getGroupAccounts(groupId!);
+  const accounts = await getGroupAccounts({ groupId: groupId! });
 
   const { success, message } = await searchParams;
   const successToast = success ? true : false;

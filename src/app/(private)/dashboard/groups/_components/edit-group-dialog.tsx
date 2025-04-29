@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { GroupWithMembers } from "@/lib/types";
-import { PencilIcon } from "lucide-react";
+import { Edit3Icon } from "lucide-react";
 import { toast } from "sonner";
 
 export function EditGroupDialog({ group }: { group: GroupWithMembers }) {
@@ -43,7 +43,7 @@ export function EditGroupDialog({ group }: { group: GroupWithMembers }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <PencilIcon className="mr-2" />
+          <Edit3Icon className="mr-2" />
           Editar
         </DropdownMenuItem>
       </DialogTrigger>

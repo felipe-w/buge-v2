@@ -48,7 +48,7 @@ export function UserDropdown({ groups, user }: { groups: Group[]; user: User }) 
       const previousGroupId = localSelectedGroupId;
       setLocalSelectedGroupId(newGroupId);
       try {
-        await setSelectedGroupIdAction(user.id, newGroupId);
+        await setSelectedGroupIdAction({ userId: user.id, groupId: newGroupId });
         router.refresh();
       } catch (error) {
         console.error("Error setting selected group ID:", error);

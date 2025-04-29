@@ -7,7 +7,7 @@ import { AccountActions } from "./_components/account-actions";
 
 export default async function AccountDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: accountId } = await params;
-  const accountAndTransactions = await getAccountAndTransactions(accountId);
+  const accountAndTransactions = await getAccountAndTransactions({ accountId });
 
   if (!accountAndTransactions) {
     return <div>Conta não encontrada</div>;

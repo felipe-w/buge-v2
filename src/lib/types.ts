@@ -71,8 +71,14 @@ export type NewBudgetItem = z.infer<typeof NewBudgetItemSchema>;
 // Categories Schema Zod Schemas
 export const CategorySchema = createSelectSchema(categories);
 export const NewCategorySchema = createInsertSchema(categories);
+export const EditCategorySchema = NewCategorySchema.omit({ groupId: true, type: true }).required({ id: true });
 export type Category = z.infer<typeof CategorySchema>;
 export type NewCategory = z.infer<typeof NewCategorySchema>;
+export type EditCategory = z.infer<typeof EditCategorySchema>;
+
+export type CategoryWithChildren = Category & {
+  children?: Category[];
+};
 
 // Groups Schema Zod Schemas
 export const GroupSchema = createSelectSchema(groups);

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusIcon } from "lucide-react";
+import { PlusCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { createGroupAction } from "@/server/actions/group-actions";
@@ -41,7 +41,7 @@ export function CreateGroupDialog({ userId }: { userId: string }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <PlusIcon />
+          <PlusCircleIcon />
           Criar Grupo
         </Button>
       </DialogTrigger>

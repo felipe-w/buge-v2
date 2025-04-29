@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { PencilIcon } from "lucide-react";
+import { Edit3Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { accountTypes } from "@/lib/db/schemas/accounts-schema";
@@ -45,7 +45,7 @@ export default function EditAccountDialog({ account }: { account: Account }) {
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
               <Button variant="secondary" size="icon">
-                <PencilIcon />
+                <Edit3Icon />
               </Button>
             </DialogTrigger>
           </TooltipTrigger>

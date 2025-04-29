@@ -22,7 +22,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
 
   let user: User | undefined;
   if (!session.user.selectedGroupId) {
-    user = await getUserByEmail(session.user.email);
+    user = await getUserByEmail({ email: session.user.email });
   }
 
   const userGroups = await getUserGroups();

@@ -15,7 +15,7 @@ import { addMember, createGroup, deleteGroup, editGroup, removeMember, transferO
 export async function createGroupAction(prevState: FormState, formData: FormData): Promise<FormState> {
   try {
     const validated = validateFormData(formData, NewGroupSchema);
-    const group = await createGroup(validated.name, validated.ownerId);
+    const group = await createGroup({ name: validated.name, ownerId: validated.ownerId });
 
     revalidatePath("/dashboard/groups");
 
@@ -39,7 +39,7 @@ export async function createGroupAction(prevState: FormState, formData: FormData
 export async function editGroupAction(prevState: FormState, formData: FormData): Promise<FormState> {
   try {
     const validated = validateFormData(formData, EditGroupSchema);
-    const group = await editGroup(validated.id, validated.name);
+    const group = await editGroup({ id: validated.id, name: validated.name });
 
     revalidatePath("/dashboard/groups");
 
@@ -64,7 +64,7 @@ export async function deleteGroupAction(prevState: FormState, formData: FormData
   try {
     // same as edit group schema
     const validated = validateFormData(formData, EditGroupSchema);
-    await deleteGroup(validated.id, validated.name);
+    await deleteGroup({ id: validated.id, name: validated.name });
 
     revalidatePath("/dashboard/groups");
 
@@ -87,7 +87,7 @@ export async function deleteGroupAction(prevState: FormState, formData: FormData
 export async function addMemberAction(prevState: FormState, formData: FormData): Promise<FormState> {
   try {
     const validated = validateFormData(formData, NewGroupMemberSchema);
-    await addMember(validated.groupId, validated.email);
+    await addMember({ groupId: validated.groupId, email: validated.email });
 
     revalidatePath("/dashboard/groups");
 
@@ -110,7 +110,7 @@ export async function addMemberAction(prevState: FormState, formData: FormData):
 export async function removeMemberAction(prevState: FormState, formData: FormData): Promise<FormState> {
   try {
     const validated = validateFormData(formData, RemoveGroupMemberSchema);
-    await removeMember(validated.groupId, validated.userId);
+    await removeMember({ groupId: validated.groupId, userId: validated.userId });
 
     revalidatePath("/dashboard/groups");
 
@@ -133,7 +133,7 @@ export async function removeMemberAction(prevState: FormState, formData: FormDat
 export async function transferOwnershipAction(prevState: FormState, formData: FormData): Promise<FormState> {
   try {
     const validated = validateFormData(formData, TransferOwnershipSchema);
-    await transferOwnership(validated.id, validated.ownerId);
+    await transferOwnership({ id: validated.id, ownerId: validated.ownerId });
 
     revalidatePath("/dashboard/groups");
 

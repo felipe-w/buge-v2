@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusIcon } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { accountTypes } from "@/lib/db/schemas/accounts-schema";
@@ -44,7 +44,7 @@ export function CreateAccountDialog({ groupId }: { groupId: string }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <PlusIcon />
+          <PlusCircle />
           Criar Conta
         </Button>
       </DialogTrigger>

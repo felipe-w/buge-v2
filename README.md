@@ -4,6 +4,10 @@
 
 [ ]
 
+### CATEGORIES
+
+[] fazer deletar (trabalhoso, tem cascade, transfer)
+
 ### ACCOUNTS
 
 [ ] Tudo relacionado a reconcile

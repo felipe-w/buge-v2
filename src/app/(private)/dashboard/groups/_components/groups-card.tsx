@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,36 +23,36 @@ export default function GroupsCard({ group, userId }: { group: GroupWithMembers;
 
   return (
     <Card key={group.id}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full border">
-            <UsersIcon size={20} />
-          </div>
-          <div>
+      <CardHeader>
+        <CardTitle>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full border">
+              <UsersIcon size={20} />
+            </div>
             <h3 className="text-lg font-medium">{group.name}</h3>
-            <p className="text-muted-foreground text-sm">
-              {group.groupMembers.length} membro{group.groupMembers.length > 1 ? "s" : ""}
-            </p>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {isOwner && <AddMemberDialog group={group} />}
-          {isOwner && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon">
-                  <MoreHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <EditGroupDialog group={group} />
-                <TransferOwnershipDialog group={group} />
-                <DropdownMenuSeparator />
-                <DeleteGroupDialog group={group} />
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+        </CardTitle>
+
+        <CardAction>
+          <div className="flex items-center gap-1">
+            {isOwner && <AddMemberDialog group={group} />}
+            {isOwner && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="secondary" size="icon">
+                    <MoreHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <EditGroupDialog group={group} />
+                  <TransferOwnershipDialog group={group} />
+                  <DropdownMenuSeparator />
+                  <DeleteGroupDialog group={group} />
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </CardAction>
       </CardHeader>
 
       {/* Member List */}

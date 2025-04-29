@@ -70,7 +70,7 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          setupNewUserAction(user.id);
+          setupNewUserAction({ id: user.id, name: user.name });
         },
       },
     },
