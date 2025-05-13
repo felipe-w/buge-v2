@@ -1,8 +1,11 @@
 "use client";
 
-import { removeMemberAction } from "@/server/actions/group-actions";
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { removeMemberAction } from "@/server/actions/groups-actions";
+import { GroupWithMembers, User } from "@/lib/db/types";
 
 import { Alert, AlertDescription, AlertError, AlertTitle } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
@@ -16,11 +19,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { GroupWithMembers, User } from "@/lib/types";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertCircle, LogOut, UserMinus } from "lucide-react";
-import { toast } from "sonner";
 
 interface RemoveMemberProps {
   group: GroupWithMembers;
@@ -47,16 +47,18 @@ export function RemoveMemberDialog({ group, member, userId }: RemoveMemberProps)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="icon">
-              {isSelfRemoval ? <LogOut /> : <UserMinus />}
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>{isSelfRemoval ? "Sair do Grupo" : "Remover Membro"}</TooltipContent>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="icon">
+                {isSelfRemoval ? <LogOut /> : <UserMinus />}
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>{isSelfRemoval ? "Sair do Grupo" : "Remover Membro"}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isSelfRemoval ? "Sair do Grupo" : "Remover Membro"}</DialogTitle>

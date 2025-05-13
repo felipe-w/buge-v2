@@ -1,7 +1,11 @@
 "use client";
 
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { addMemberAction } from "@/server/actions/groups-actions";
+import { GroupWithMembers } from "@/lib/db/types";
 
 import { AlertError } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
@@ -17,12 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { GroupWithMembers } from "@/lib/types";
-import { addMemberAction } from "@/server/actions/group-actions";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserPlus } from "lucide-react";
-import { toast } from "sonner";
 
 export function AddMemberDialog({ group }: { group: GroupWithMembers }) {
   const [open, setOpen] = useState(false);
@@ -41,16 +41,22 @@ export function AddMemberDialog({ group }: { group: GroupWithMembers }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button variant="secondary" size="icon">
-              <UserPlus />
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Adicionar membro</TooltipContent>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
+              >
+                <UserPlus />
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Adicionar membro</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adicionar Membro</DialogTitle>

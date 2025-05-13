@@ -1,8 +1,21 @@
 import { relations, sql } from "drizzle-orm";
-import { date, index, numeric, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { date, index, jsonb, numeric, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+
+import { ExtractedTransaction } from "@/lib/validations";
+
 import { accounts } from "./accounts-schema";
 import { budgets } from "./budgets-schema";
+import { categories } from "./categories-schema";
 import { transactions } from "./transactions-schema";
+
+export const statementStatuses = [
+  "extracting",
+  "categorizing",
+  "validating",
+  "reviewing",
+  "completed",
+  "failed",
+] as const;
 
 // --- Statements Table ---
 export const statements = pgTable(
@@ -25,15 +38,16 @@ export const statements = pgTable(
       .default("credit_card"),
     description: text("description"),
     expectedTotal: numeric("expected_total", { precision: 12, scale: 2 }),
-    actualTotal: numeric("actual_total", { precision: 12, scale: 2 }),
     status: varchar("status", {
       length: 20,
-      enum: ["pending", "imported", "error"],
+      enum: statementStatuses,
     })
       .notNull()
-      .default("pending"),
-    errorMessage: text("error_message"),
-    rawResponse: text("raw_response"),
+      .default("extracting"),
+    fileUrl: text("file_url"),
+    aiResponse: jsonb("ai_response").$type<ExtractedTransaction[]>(),
+    categorizationResponse: jsonb("categorization_response").$type<ExtractedTransaction[]>(),
+    error: text("error"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
@@ -65,20 +79,17 @@ export const statementTransactions = pgTable(
       .references(() => statements.id, { onDelete: "cascade" }),
     date: date("date").notNull(),
     title: varchar("title", { length: 255 }).notNull(),
-    categoryName: varchar("category_name", { length: 255 }),
-    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-    transactionId: uuid("transaction_id").references(() => transactions.id, {
+    description: text("description"),
+    categoryId: uuid("category_id").references(() => categories.id, {
       onDelete: "set null",
     }),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [
-    index("idx_statement_transactions_statement_id").on(t.statementId),
-    uniqueIndex("uq_statement_transactions_transaction_id").on(t.transactionId),
-  ],
+  (t) => [index("idx_statement_transactions_statement_id").on(t.statementId)],
 );
 
 export const statementTransactionsRelations = relations(statementTransactions, ({ one }) => ({
@@ -87,7 +98,11 @@ export const statementTransactionsRelations = relations(statementTransactions, (
     references: [statements.id],
   }),
   importedTransaction: one(transactions, {
-    fields: [statementTransactions.transactionId],
+    fields: [statementTransactions.id],
     references: [transactions.id],
+  }),
+  category: one(categories, {
+    fields: [statementTransactions.categoryId],
+    references: [categories.id],
   }),
 }));

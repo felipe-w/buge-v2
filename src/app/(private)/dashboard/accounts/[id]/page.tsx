@@ -1,8 +1,7 @@
-import { Heading } from "@/components/layout/heading";
-import { Card, CardContent } from "@/components/ui/card";
-
 import { getAccountAndTransactions } from "@/server/data/accounts";
 
+import { Heading } from "@/components/layout/heading";
+import { Card, CardContent } from "@/components/ui/card";
 import { AccountActions } from "./_components/account-actions";
 
 export default async function AccountDetailsPage({ params }: { params: Promise<{ id: string }> }) {

@@ -1,5 +1,7 @@
 "use client";
 
+import { GroupWithMembers } from "@/lib/db/types";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { GroupWithMembers } from "@/lib/types";
 import { MoreHorizontal, UsersIcon } from "lucide-react";
 import { AddMemberDialog } from "./add-member-dialog";
 import { DeleteGroupDialog } from "./delete-group-dialog";
@@ -34,12 +35,16 @@ export default function GroupsCard({ group, userId }: { group: GroupWithMembers;
         </CardTitle>
 
         <CardAction>
-          <div className="flex items-center gap-1">
+          <div className="divide-muted-foreground/20 inline-flex divide-x rounded-md shadow-xs rtl:space-x-reverse">
             {isOwner && <AddMemberDialog group={group} />}
             {isOwner && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="secondary" size="icon">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
+                  >
                     <MoreHorizontal />
                   </Button>
                 </DropdownMenuTrigger>

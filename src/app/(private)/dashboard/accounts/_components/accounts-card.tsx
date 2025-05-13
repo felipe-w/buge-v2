@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
+
+import { Account } from "@/lib/db/types";
+import { getAccountTypeName } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Account } from "@/lib/types";
-import { getAccountTypeName } from "@/lib/utils";
 import { ArrowLeftRight } from "lucide-react";
-import Link from "next/link";
 
 export function AccountCards({ account }: { account: Account & { transactions: number } }) {
   return (

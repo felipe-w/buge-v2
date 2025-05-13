@@ -1,10 +1,12 @@
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { auth } from "@/lib/auth";
-import { User } from "@/lib/types";
-import { getUserGroups } from "@/server/data/groups";
-import { getUserByEmail } from "@/server/data/users";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+
+import { getUserGroups } from "@/server/data/groups";
+import { getUserByEmail } from "@/server/data/users";
+import { auth } from "@/lib/auth";
+import { User } from "@/lib/db/types";
+
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
 const navItems = [
   { label: "Home", url: "/dashboard" },
@@ -25,7 +27,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
     user = await getUserByEmail({ email: session.user.email });
   }
 
-  const userGroups = await getUserGroups();
+  const userGroups = await getUserGroups({ userId: session.user.id });
 
   return (
     <>

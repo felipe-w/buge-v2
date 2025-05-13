@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { date, index, numeric, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+
 import { categories } from "./categories-schema";
 import { groups } from "./groups-schema";
 import { statements } from "./statements-schema";

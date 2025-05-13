@@ -1,8 +1,10 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
-import { LogOut } from "lucide-react";
 import { redirect } from "next/navigation";
+
+import { authClient } from "@/lib/auth-client";
+
+import { LogOut } from "lucide-react";
 import { DropdownMenuItem } from "../ui/dropdown-menu";
 
 export default function LogoutItem() {

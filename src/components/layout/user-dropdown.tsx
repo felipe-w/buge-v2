@@ -1,8 +1,12 @@
 "use client";
 
-import { AlertCircle, ChevronDown, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+import { setSelectedGroupIdAction } from "@/server/actions/users-actions";
+import { Group, User } from "@/lib/db/types";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,11 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { Group, User } from "@/lib/types";
-import { setSelectedGroupIdAction } from "@/server/actions/user-actions";
-import Link from "next/link";
-import { toast } from "sonner";
+import { AlertCircle, ChevronDown, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import LogoutItem from "./logout-item";
 

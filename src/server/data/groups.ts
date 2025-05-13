@@ -1,16 +1,15 @@
 import "server-only";
 
-import { isAuthenticated } from "@/lib/auth";
+import { and, eq, exists } from "drizzle-orm";
+
 import { db } from "@/lib/db/drizzle";
 import { groupMembers, groups } from "@/lib/db/schemas/groups-schema";
-import { EditGroup, NewGroup, NewGroupMember, RemoveGroupMember, TransferOwnership } from "@/lib/types";
-import { and, eq, exists } from "drizzle-orm";
-import { getUserByEmail } from "./users";
+import { EditGroup, NewGroup, NewGroupMember, RemoveGroupMember, TransferOwnership } from "@/lib/validations";
 
-export async function getUserGroups() {
-  const { id: userId } = await isAuthenticated();
+import { getCurrentUser, getUserByEmail } from "./users";
 
-  return await db.query.groups.findMany({
+export async function getUserGroups({ userId }: { userId: string }) {
+  const result = await db.query.groups.findMany({
     where: (groups) =>
       exists(
         db
@@ -24,13 +23,12 @@ export async function getUserGroups() {
       },
     },
   });
+
+  if (!result) throw new Error("Grupos não encontrados");
+  return result;
 }
 
-export async function createGroup({ name, ownerId, newUser }: NewGroup & { newUser?: boolean }) {
-  if (!newUser) {
-    await isAuthenticated();
-  }
-
+export async function createGroup({ name, ownerId }: NewGroup) {
   return await db.transaction(async (tx) => {
     const newGroup = await tx.insert(groups).values({ name, ownerId }).returning();
     await tx.insert(groupMembers).values({ groupId: newGroup[0].id, userId: ownerId });
@@ -40,7 +38,6 @@ export async function createGroup({ name, ownerId, newUser }: NewGroup & { newUs
 }
 
 export async function editGroup({ id, name }: EditGroup) {
-  await isAuthenticated();
   await checkGroupOwnership({ groupId: id });
 
   const result = await db.update(groups).set({ name }).where(eq(groups.id, id)).returning();
@@ -48,7 +45,6 @@ export async function editGroup({ id, name }: EditGroup) {
 }
 
 export async function deleteGroup({ id, name }: EditGroup) {
-  await isAuthenticated();
   await checkGroupOwnership({ groupId: id });
 
   const result = await db
@@ -60,7 +56,6 @@ export async function deleteGroup({ id, name }: EditGroup) {
 }
 
 export async function addMember({ groupId, email }: NewGroupMember) {
-  await isAuthenticated();
   await checkGroupOwnership({ groupId });
 
   const userToAdd = await getUserByEmail({ email });
@@ -78,21 +73,19 @@ export async function addMember({ groupId, email }: NewGroupMember) {
 }
 
 export async function removeMember({ groupId, userId }: RemoveGroupMember) {
-  await isAuthenticated();
   await checkGroupOwnership({ groupId });
 
   await db.delete(groupMembers).where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)));
 }
 
 export async function transferOwnership({ id, ownerId }: TransferOwnership) {
-  await isAuthenticated();
   await checkGroupOwnership({ groupId: id });
 
   await db.update(groups).set({ ownerId }).where(eq(groups.id, id));
 }
 
 export async function checkGroupOwnership({ groupId }: { groupId: string }) {
-  const { id: userId } = await isAuthenticated();
+  const { id: userId } = await getCurrentUser();
 
   const group = await db
     .select()

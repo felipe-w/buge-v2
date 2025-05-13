@@ -1,12 +1,13 @@
-import { db } from "@/lib/db/drizzle";
-import { setupNewUserAction } from "@/server/actions/user-actions";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
-import { headers } from "next/headers";
+
+import { setupNewUserAction } from "@/server/actions/users-actions";
+import { db } from "@/lib/db/drizzle";
+
 import { authAccounts, authSessions, authUsers, authVerifications } from "./db/schemas/auth-schema";
-import { AuthUser } from "./types";
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -77,11 +78,11 @@ export const auth = betterAuth({
   },
 });
 
-export async function isAuthenticated(): Promise<AuthUser> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session?.user) throw new Error("Usuário não autenticado");
+// export async function isAuthenticated(): Promise<User> {
+//   const session = await auth.api.getSession({
+//     headers: await headers(),
+//   });
+//   if (!session?.user) throw new Error("Usuário não autenticado");
 
-  return session.user as AuthUser;
-}
+//   return session.user as User;
+// }

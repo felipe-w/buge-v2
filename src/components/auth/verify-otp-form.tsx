@@ -1,16 +1,17 @@
 "use client";
 
-import { verifyOTPAction } from "@/server/actions/user-actions";
-import Form from "next/form";
-import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+import { verifyOTPAction } from "@/server/actions/users-actions";
 
 import { AlertError } from "@/components/ui/alert";
 import { SubmitButton } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
 
 export default function VerifyOTPForm() {
   const [state, formAction, isPending] = useActionState(verifyOTPAction, {

@@ -1,8 +1,11 @@
 "use client";
 
-import { addSubCategoryAction } from "@/server/actions/category-actions";
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { addSubCategoryAction } from "@/server/actions/categories-actions";
+import { CategoryWithChildren } from "@/lib/db/types";
 
 import { AlertError } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
@@ -18,10 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CategoryWithChildren } from "@/lib/types";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PlusCircleIcon } from "lucide-react";
-import { toast } from "sonner";
 
 export default function AddSubCategoryDialog({ category }: { category: CategoryWithChildren }) {
   const [open, setOpen] = useState(false);
@@ -36,20 +37,22 @@ export default function AddSubCategoryDialog({ category }: { category: CategoryW
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hover:bg-background size-6 opacity-0 group-hover:opacity-100"
-            >
-              <PlusCircleIcon />
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Adicionar Subcategoria</TooltipContent>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-background size-6 opacity-0 group-hover:opacity-100"
+              >
+                <PlusCircleIcon />
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Adicionar Subcategoria</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nova Subcategoria</DialogTitle>

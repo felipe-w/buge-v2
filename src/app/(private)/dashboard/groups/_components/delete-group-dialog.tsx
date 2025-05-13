@@ -1,10 +1,13 @@
 "use client";
 
-import { deleteGroupAction } from "@/server/actions/group-actions";
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
 
-import { Alert, AlertDescription, AlertError, AlertTitle } from "@/components/ui/alert";
+import { deleteGroupAction } from "@/server/actions/groups-actions";
+import { GroupWithMembers } from "@/lib/db/types";
+
+import { AlertError } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,12 +20,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GroupWithMembers } from "@/lib/types";
-import { AlertCircle, TrashIcon } from "lucide-react";
-import { toast } from "sonner";
+import { TrashIcon } from "lucide-react";
 
 export function DeleteGroupDialog({ group }: { group: GroupWithMembers }) {
   const [open, setOpen] = useState(false);
@@ -50,21 +50,12 @@ export function DeleteGroupDialog({ group }: { group: GroupWithMembers }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Excluir Grupo</DialogTitle>
-          <DialogDescription>Tem certeza que deseja excluir o grupo?</DialogDescription>
+          <DialogDescription>Ação irreversível, todos os dados serão perdidos.</DialogDescription>
         </DialogHeader>
         <Form id="delete-group-form" action={formAction}>
           <input type="hidden" name="id" value={group.id} />
           <div className="space-y-6 py-2">
             {state.errors && <AlertError description={state.errors.server && state.errors.server[0]} />}
-            <Alert variant="warning">
-              <AlertCircle />
-              <AlertTitle>ATENÇÃO</AlertTitle>
-              <AlertDescription>
-                Todos os dados do grupo serão perdidos.
-                <br />
-                Essa ação não pode ser revertida.
-              </AlertDescription>
-            </Alert>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="name">Confirme o nome</Label>
               <Input id="name" name="name" required placeholder="Nome do Grupo" disabled={isPending} />

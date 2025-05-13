@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+
 import { accounts } from "./accounts-schema";
 import { authUsers } from "./auth-schema";
 import { budgets } from "./budgets-schema";

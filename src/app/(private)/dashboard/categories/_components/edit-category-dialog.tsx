@@ -1,7 +1,11 @@
 "use client";
 
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { editCategoryAction } from "@/server/actions/categories-actions";
+import { CategoryWithChildren } from "@/lib/db/types";
 
 import { Alert, AlertDescription, AlertError, AlertTitle } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
@@ -17,11 +21,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CategoryWithChildren } from "@/lib/types";
-import { editCategoryAction } from "@/server/actions/category-actions";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Edit3Icon, Terminal } from "lucide-react";
-import { toast } from "sonner";
 
 interface EditCategoryDialogProps {
   category: CategoryWithChildren;
@@ -53,20 +54,22 @@ export default function EditCategoryDialog({ category, categories }: EditCategor
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hover:bg-background size-6 opacity-0 group-hover:opacity-100"
-            >
-              <Edit3Icon />
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Editar categoria</TooltipContent>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-background size-6 opacity-0 group-hover:opacity-100"
+              >
+                <Edit3Icon />
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Editar categoria</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar Categoria</DialogTitle>

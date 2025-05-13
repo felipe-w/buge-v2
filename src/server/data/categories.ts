@@ -1,36 +1,39 @@
-import { isAuthenticated } from "@/lib/auth";
-import { db } from "@/lib/db/drizzle";
-import { categories } from "@/lib/db/schemas";
-import { EditCategory, NewCategory } from "@/lib/types";
 import { and, eq, isNull } from "drizzle-orm";
 
-export async function getGroupCategories({ groupId }: { groupId: string }) {
-  await isAuthenticated();
+import { db } from "@/lib/db/drizzle";
+import { categories } from "@/lib/db/schemas";
+import { EditCategory, NewCategory } from "@/lib/validations";
 
-  return await db.query.categories.findMany({
-    where: and(eq(categories.groupId, groupId), isNull(categories.parentId)),
+import { getCurrentUser } from "./users";
+
+export async function getGroupCategories({ groupId }: { groupId: string }) {
+  const groupIdToUse = groupId ?? (await getCurrentUser()).selectedGroupId;
+  if (!groupIdToUse) throw new Error("Grupo não selecionado");
+
+  const result = await db.query.categories.findMany({
+    where: and(eq(categories.groupId, groupIdToUse), isNull(categories.parentId)),
     with: {
       children: true,
     },
   });
+
+  if (!result) throw new Error("Categorias não encontradas");
+  return result;
 }
 
 export async function getCategoryById({ id }: { id: string }) {
-  await isAuthenticated();
+  const result = await db.query.categories.findFirst({ where: eq(categories.id, id), with: { children: true } });
 
-  return await db.query.categories.findFirst({ where: eq(categories.id, id), with: { children: true } });
+  if (!result) throw new Error("Categoria não encontrada");
+  return result;
 }
 
 export async function createCategory({ name, groupId, type, parentId }: NewCategory) {
-  await isAuthenticated();
-
   const [category] = await db.insert(categories).values({ name, groupId, type, parentId }).returning();
   return category;
 }
 
 export async function editCategory({ id, name, parentId }: EditCategory) {
-  await isAuthenticated();
-
   const category = await getCategoryById({ id });
   if (!category) throw new Error("Categoria não encontrada.");
 

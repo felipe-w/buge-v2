@@ -1,7 +1,11 @@
 "use client";
 
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { deleteAccountAction } from "@/server/actions/accounts-actions";
+import { Account, AccountWithTransactions } from "@/lib/db/types";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -16,12 +20,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertCircle, Loader2, Trash2Icon } from "lucide-react";
-import { toast } from "sonner";
-
-import { Account, AccountWithTransactions } from "@/lib/types";
-import { deleteAccountAction } from "@/server/actions/account-actions";
 
 interface DeleteAccountDialogProps {
   account: AccountWithTransactions;
@@ -45,16 +45,22 @@ export default function DeleteAccountDialog({ account, accounts }: DeleteAccount
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button variant="secondary" size="icon">
-              <Trash2Icon />
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Excluir conta</TooltipContent>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
+              >
+                <Trash2Icon />
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Excluir conta</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Excluir Conta</DialogTitle>

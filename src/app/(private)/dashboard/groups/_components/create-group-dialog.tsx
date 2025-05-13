@@ -1,7 +1,10 @@
 "use client";
 
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { createGroupAction } from "@/server/actions/groups-actions";
 
 import { AlertError } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
@@ -18,9 +21,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlusCircleIcon } from "lucide-react";
-import { toast } from "sonner";
-
-import { createGroupAction } from "@/server/actions/group-actions";
 
 export function CreateGroupDialog({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false);

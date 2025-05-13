@@ -1,8 +1,11 @@
 "use client";
 
-import { transferOwnershipAction } from "@/server/actions/group-actions";
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { transferOwnershipAction } from "@/server/actions/groups-actions";
+import { GroupMember, GroupWithMembers, User } from "@/lib/db/types";
 
 import { AlertError } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
@@ -19,10 +22,7 @@ import {
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-import { GroupMember, GroupWithMembers, User } from "@/lib/types";
 import { UserCheck } from "lucide-react";
-import { toast } from "sonner";
 
 export function TransferOwnershipDialog({ group }: { group: GroupWithMembers }) {
   const [open, setOpen] = useState(false);

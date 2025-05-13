@@ -1,8 +1,8 @@
-import EmptySection from "@/components/layout/empty-section";
-import { Heading } from "@/components/layout/heading";
-
 import { getGroupCategories } from "@/server/data/categories";
 import { getCurrentUser } from "@/server/data/users";
+
+import EmptySection from "@/components/layout/empty-section";
+import { Heading } from "@/components/layout/heading";
 import CategoryTree from "./_components/category-tree";
 import { CreateParentCategoryDialog } from "./_components/create-parent-category-dialog";
 
@@ -12,7 +12,7 @@ export default async function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <Heading title="Categorias" actions={<CreateParentCategoryDialog categoryType="income" groupId={groupId!} />} />
+      <Heading title="Categorias" actions={<CreateParentCategoryDialog groupId={groupId!} />} />
 
       {categories.length === 0 ? (
         <EmptySection

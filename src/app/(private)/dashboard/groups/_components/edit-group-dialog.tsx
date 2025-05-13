@@ -1,8 +1,11 @@
 "use client";
 
-import { editGroupAction } from "@/server/actions/group-actions";
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { editGroupAction } from "@/server/actions/groups-actions";
+import { GroupWithMembers } from "@/lib/db/types";
 
 import { AlertError } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
@@ -19,10 +22,7 @@ import {
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import { GroupWithMembers } from "@/lib/types";
 import { Edit3Icon } from "lucide-react";
-import { toast } from "sonner";
 
 export function EditGroupDialog({ group }: { group: GroupWithMembers }) {
   const [open, setOpen] = useState(false);

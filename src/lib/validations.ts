@@ -1,19 +1,30 @@
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
 import {
   accountReconciliations,
   accounts,
-  accountTypes,
-  authUsers,
   budgetItems,
   budgets,
   categories,
-  groupMembers,
   groups,
   statements,
   statementTransactions,
   transactions,
 } from "@/lib/db/schemas";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
+
+// helpers
+const numericStringSchema = z
+  .string({
+    required_error: "Este campo é obrigatório",
+    invalid_type_error: "Deve ser um texto",
+  })
+  .trim()
+  .refine((s) => s.length > 0, { message: "Valor não pode ser vazio" })
+  .pipe(
+    z.coerce.number().finite({ message: "Número deve ser finito" }).positive({ message: "Número deve ser positivo" }),
+  )
+  .transform(String);
 
 export type FormState = {
   success: boolean;
@@ -21,6 +32,9 @@ export type FormState = {
   errors?: Record<string, string[] | undefined>;
   data?: Record<string, unknown>;
 };
+
+export const uuidSchema = z.object({ id: z.string().uuid({ message: "ID inválido" }) });
+export type UUID = z.infer<typeof uuidSchema>;
 
 // Auth Form Schema
 export const AuthFormSchema = z.object({
@@ -33,7 +47,6 @@ export type AuthFormSchema = z.infer<typeof AuthFormSchema>;
 export type VerifyOTPFormSchema = z.infer<typeof VerifyOTPFormSchema>;
 
 // Accounts Schema Zod Schemas
-export const AccountSchema = createSelectSchema(accounts);
 export const NewAccountSchema = createInsertSchema(accounts);
 export const EditAccountSchema = NewAccountSchema.omit({ groupId: true }).required({ id: true });
 export const DeleteAccountSchema = NewAccountSchema.partial()
@@ -42,96 +55,121 @@ export const DeleteAccountSchema = NewAccountSchema.partial()
     deleteOption: z.enum(["cascade", "transfer"]),
     transferTo: z.string().uuid().optional(),
   });
-export type Account = z.infer<typeof AccountSchema>;
+
 export type NewAccount = z.infer<typeof NewAccountSchema>;
 export type EditAccount = z.infer<typeof EditAccountSchema>;
 export type DeleteAccount = z.infer<typeof DeleteAccountSchema>;
 
-export type AccountType = (typeof accountTypes)[number];
-export type AccountWithTransactions = Account & {
-  transactions: (Transaction & { category: Category | null; account: Account })[];
-};
-
-export const AccountReconciliationSchema = createSelectSchema(accountReconciliations);
 export const NewAccountReconciliationSchema = createInsertSchema(accountReconciliations);
-export type AccountReconciliation = z.infer<typeof AccountReconciliationSchema>;
 export type NewAccountReconciliation = z.infer<typeof NewAccountReconciliationSchema>;
 
 // Budgets Schema Zod Schemas
-export const BudgetSchema = createSelectSchema(budgets);
 export const NewBudgetSchema = createInsertSchema(budgets);
-export type Budget = z.infer<typeof BudgetSchema>;
 export type NewBudget = z.infer<typeof NewBudgetSchema>;
 
-export const BudgetItemSchema = createSelectSchema(budgetItems);
 export const NewBudgetItemSchema = createInsertSchema(budgetItems);
-export type BudgetItem = z.infer<typeof BudgetItemSchema>;
 export type NewBudgetItem = z.infer<typeof NewBudgetItemSchema>;
 
 // Categories Schema Zod Schemas
-export const CategorySchema = createSelectSchema(categories);
 export const NewCategorySchema = createInsertSchema(categories);
 export const EditCategorySchema = NewCategorySchema.omit({ groupId: true, type: true }).required({ id: true });
-export type Category = z.infer<typeof CategorySchema>;
 export type NewCategory = z.infer<typeof NewCategorySchema>;
 export type EditCategory = z.infer<typeof EditCategorySchema>;
 
-export type CategoryWithChildren = Category & {
-  children?: Category[];
-};
-
 // Groups Schema Zod Schemas
-export const GroupSchema = createSelectSchema(groups);
 export const NewGroupSchema = createInsertSchema(groups);
 export const EditGroupSchema = NewGroupSchema.omit({ ownerId: true }).required({ id: true });
 export const TransferOwnershipSchema = NewGroupSchema.omit({ name: true }).required({ id: true, ownerId: true });
-export type Group = z.infer<typeof GroupSchema>;
 export type NewGroup = z.infer<typeof NewGroupSchema>;
 export type EditGroup = z.infer<typeof EditGroupSchema>;
 export type TransferOwnership = z.infer<typeof TransferOwnershipSchema>;
 
-export const GroupMemberSchema = createSelectSchema(groupMembers);
 export const NewGroupMemberSchema = z.object({
   groupId: z.string().uuid(),
   email: z.string().email({ message: "E-mail inválido" }),
 });
-export const RemoveGroupMemberSchema = GroupMemberSchema.partial().required({ userId: true, groupId: true });
 
-export type GroupMember = z.infer<typeof GroupMemberSchema>;
+export const RemoveGroupMemberSchema = z.object({
+  userId: z.string().uuid(),
+  groupId: z.string().uuid(),
+});
+
 export type NewGroupMember = z.infer<typeof NewGroupMemberSchema>;
 export type RemoveGroupMember = z.infer<typeof RemoveGroupMemberSchema>;
 
-export type GroupWithMembers = Group & {
-  groupMembers: (GroupMember & {
-    user: User;
-  })[];
-};
-
 // Statements Schema Zod Schemas
-export const StatementSchema = createSelectSchema(statements);
-export const NewStatementSchema = createInsertSchema(statements);
-export type Statement = z.infer<typeof StatementSchema>;
+
+export const NewStatementSchema = createInsertSchema(statements)
+  .extend({
+    statementType: z.enum(["credit_card", "bank"], { message: "Tipo de extrato inválido" }),
+    pdfFile: z
+      .any()
+      .refine((file) => file instanceof File && file.type === "application/pdf" && file.size <= 4 * 1024 * 1024, {
+        message: "Arquivo PDF é obrigatório e deve ter no máximo 4MB",
+      }),
+    expectedTotal: numericStringSchema.optional(), // Only required for credit_card via superRefine
+    budgetId: z.string().uuid().optional(),
+    description: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.statementType === "credit_card") {
+      if (!data.expectedTotal) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Valor é obrigatório para cartão de crédito",
+          path: ["expectedTotal"],
+        });
+      }
+    }
+  });
 export type NewStatement = z.infer<typeof NewStatementSchema>;
 
-export const StatementTransactionSchema = createSelectSchema(statementTransactions);
 export const NewStatementTransactionSchema = createInsertSchema(statementTransactions);
-export type StatementTransaction = z.infer<typeof StatementTransactionSchema>;
 export type NewStatementTransaction = z.infer<typeof NewStatementTransactionSchema>;
 
 // Transactions Schema Zod Schemas
-export const TransactionSchema = createSelectSchema(transactions);
-export const NewTransactionSchema = createInsertSchema(transactions);
-export type Transaction = z.infer<typeof TransactionSchema>;
+const BaseTransactionSchemaFields = createInsertSchema(transactions, {
+  amount: numericStringSchema,
+}).extend({
+  type: z.enum(["transfer", "expense", "income"]),
+  destinationAccountId: z.string().uuid().optional(),
+});
+
+export const NewTransactionSchema = BaseTransactionSchemaFields.superRefine((data, ctx) => {
+  if (data.type === "transfer") {
+    if (!data.destinationAccountId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Conta de destino é obrigatória",
+      });
+    } else if (data.destinationAccountId === data.accountId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Conta de destino não pode ser a mesma conta de origem",
+      });
+    }
+  }
+});
+
+export const EditTransactionSchema = BaseTransactionSchemaFields.partial().required({ id: true });
+
 export type NewTransaction = z.infer<typeof NewTransactionSchema>;
+export type EditTransaction = z.infer<typeof EditTransactionSchema>;
 
-// Users Schema Zod Schemas
-export const AuthUserSchema = createSelectSchema(authUsers);
-export const NewAuthUserSchema = createInsertSchema(authUsers);
-export type AuthUser = z.infer<typeof AuthUserSchema>;
-export type NewAuthUser = z.infer<typeof NewAuthUserSchema>;
+export const NewCompensateSchema = z.object({
+  firstId: z.string().uuid(),
+  secondId: z.string().uuid(),
+});
 
-export const UserSchema = AuthUserSchema;
-export type User = Omit<z.infer<typeof UserSchema>, "image" | "selectedGroupId"> & {
-  image?: string | null | undefined;
-  selectedGroupId?: string | null | undefined;
-};
+export type NewCompensate = z.infer<typeof NewCompensateSchema>;
+
+// Extracted Transactions
+export const ExtractedTransactionSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data deve estar no formato YYYY-MM-DD" }),
+  title: z.string().min(1, { message: "Título é obrigatório" }),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  amount: z.string(),
+});
+
+export type ExtractedTransaction = z.infer<typeof ExtractedTransactionSchema>;

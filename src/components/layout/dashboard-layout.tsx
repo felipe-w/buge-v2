@@ -1,8 +1,10 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+
+import { GroupWithMembers, User } from "@/lib/db/types";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +13,6 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { GroupWithMembers, User } from "@/lib/types";
 import { Menu } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";

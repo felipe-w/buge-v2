@@ -72,39 +72,39 @@
   --radius: 0.5rem;
 
   /* Core Colors */
-  --background: oklch(0.985 0.001 224); /* Slightly darker off-white */
+  --background: oklch(0.985 0.001 224);
   --foreground: oklch(0.2 0.01 350.07);
-  --card: oklch(1 0 224); /* Pure white */
+  --card: oklch(1 0 224);
   --card-foreground: oklch(0.2 0.01 350.07);
-  --popover: oklch(1 0 224); /* Pure white */
+  --popover: oklch(1 0 224);
   --popover-foreground: oklch(0.2 0.01 350.07);
   --primary: oklch(0.353 0.051 351.51);
   --primary-foreground: oklch(0.958 0.008 348.04);
-  --secondary: oklch(0.939 0.006 56.35); /* Light Warm Gray */
+  --secondary: oklch(0.939 0.006 56.35);
   --secondary-foreground: oklch(0.217 0.011 55.72);
-  --muted: oklch(0.91 0.004 56.35); /* NEW - Darker, less saturated */
-  --muted-foreground: oklch(0.55 0.02 56.35); /* NEW - Adjusted contrast */
-  --accent: oklch(0.83 0.0719 66.56);
+  --muted: oklch(0.91 0.004 56.35);
+  --muted-foreground: oklch(0.55 0.02 56.35);
+  --accent: oklch(0.9 0.0123 352.23);
   --accent-foreground: oklch(0.252 0.03 34.63);
   --destructive: oklch(0.603 0.178 25.05);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.91 0.004 56.35); /* NEW - Matches muted, aligned hue */
-  --input: oklch(0.88 0.005 56.35); /* NEW - Darker than border, aligned hue */
+  --border: oklch(0.91 0.004 56.35);
+  --input: oklch(0.88 0.005 56.35);
   --ring: oklch(0.353 0.051 351.51);
 
   /* --- Status Colors (Light) --- */
   --success: oklch(85% 0.08 145);
-  --success-foreground: oklch(15% 0.04 145);
+  --success-foreground: oklch(40% 0.04 145);
   --warning: oklch(80% 0.13 85);
-  --warning-foreground: oklch(30% 0.08 85);
+  --warning-foreground: oklch(40% 0.08 85);
   --info: oklch(70% 0.08 250);
-  --info-foreground: oklch(20% 0.04 250);
+  --info-foreground: oklch(40% 0.04 250);
 
   /* --- Financial Colors (Light) --- */
   --income: oklch(0.78 0.0323 209.16);
-  --income-foreground: oklch(0.36 0.024 212.86);
+  --income-foreground: oklch(0.5 0.024 212.86);
   --expense: oklch(79.1% 0.07 68.9);
-  --expense-foreground: oklch(25% 0.03 69);
+  --expense-foreground: oklch(50% 0.03 69);
 
   /* Chart Colors */
   --chart-1: var(--primary);
@@ -120,7 +120,7 @@
   --sidebar-primary-foreground: oklch(0.958 0.008 348.04);
   --sidebar-accent: oklch(0.749 0.06 34.43);
   --sidebar-accent-foreground: oklch(0.21 0.028 34.7);
-  --sidebar-border: oklch(0.91 0.004 56.35); /* NEW - Use new border */
+  --sidebar-border: oklch(0.91 0.004 56.35);
   --sidebar-ring: oklch(0.353 0.051 351.51);
 }
 

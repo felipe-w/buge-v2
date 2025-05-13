@@ -1,7 +1,13 @@
 "use client";
 
-import Form from "next/form";
 import { useActionState, useEffect, useState } from "react";
+import Form from "next/form";
+import { toast } from "sonner";
+
+import { editAccountAction } from "@/server/actions/accounts-actions";
+import { accountTypes } from "@/lib/db/schemas/accounts-schema";
+import { Account } from "@/lib/db/types";
+import { getAccountTypeName } from "@/lib/utils";
 
 import { AlertError } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
@@ -18,14 +24,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Edit3Icon } from "lucide-react";
-import { toast } from "sonner";
-
-import { accountTypes } from "@/lib/db/schemas/accounts-schema";
-import { Account } from "@/lib/types";
-import { getAccountTypeName } from "@/lib/utils";
-import { editAccountAction } from "@/server/actions/account-actions";
 
 export default function EditAccountDialog({ account }: { account: Account }) {
   const [open, setOpen] = useState(false);
@@ -41,16 +41,22 @@ export default function EditAccountDialog({ account }: { account: Account }) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <DialogTrigger asChild>
-              <Button variant="secondary" size="icon">
-                <Edit3Icon />
-              </Button>
-            </DialogTrigger>
-          </TooltipTrigger>
-          <TooltipContent>Editar conta</TooltipContent>
-        </Tooltip>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DialogTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
+                >
+                  <Edit3Icon />
+                </Button>
+              </DialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Editar conta</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar conta</DialogTitle>

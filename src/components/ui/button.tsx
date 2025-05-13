@@ -1,8 +1,9 @@
+import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import * as React from "react";
 
 import { cn } from "@/lib/utils";
+
 import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 
 const buttonVariants = cva(
@@ -22,6 +23,8 @@ const buttonVariants = cva(
         pending: "bg-muted text-muted-foreground shadow-xs disabled:opacity-100",
         info: "bg-info text-info-foreground shadow-xs",
         warning: "bg-warning text-warning-foreground shadow-xs",
+        input:
+          "font-normal justify-start bg-card border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

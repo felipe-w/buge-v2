@@ -1,6 +1,5 @@
-import { date, index, numeric, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
-
 import { relations, sql } from "drizzle-orm";
+import { date, index, numeric, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 import { accounts } from "./accounts-schema";
 import { budgets } from "./budgets-schema";
@@ -24,11 +23,7 @@ export const transactions = pgTable(
       onDelete: "set null",
     }),
     amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-    effectiveAmount: numeric("effective_amount", { precision: 12, scale: 2 }),
-    transactionType: varchar("transaction_type", {
-      length: 10,
-      enum: ["expense", "income", "transfer"],
-    }).notNull(),
+    compensatedAmount: numeric("compensated_amount", { precision: 12, scale: 2 }),
     title: varchar("title", { length: 255 }).notNull(),
     description: text("description"),
     date: date("date").notNull(),
@@ -59,6 +54,10 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   budget: one(budgets, {
     fields: [transactions.budgetId],
     references: [budgets.id],
+  }),
+  transfer: one(transactions, {
+    fields: [transactions.transferId],
+    references: [transactions.id],
   }),
   statementTransactions: one(statementTransactions),
 }));

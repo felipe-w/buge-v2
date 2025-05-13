@@ -1,8 +1,9 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { CategoryWithChildren } from "@/lib/types";
+import { CategoryWithChildren } from "@/lib/db/types";
 import { categoryTypeConfig, cn } from "@/lib/utils";
+
+import { Badge } from "@/components/ui/badge";
 import { ChevronDown, Minus } from "lucide-react";
 import AddSubCategoryDialog from "./add-subcategory-dialog";
 import EditCategoryDialog from "./edit-category-dialog";
@@ -28,9 +29,9 @@ export default function CategoryTree({ categories, type }: CategoryTreeProps) {
   return (
     <>
       <div className={cn("overflow-hidden rounded-md border", colors.border)}>
-        <div className={cn("flex items-center justify-between border-b p-3", colors.bg, colors.bgHover)}>
+        <div className={cn("flex items-center justify-between border-b p-3", colors.bgLight, colors.bgHover)}>
           <div className="flex items-center">
-            <Badge variant="default" className={cn("text-background font-bold", colors.badgeBg)}>
+            <Badge variant="default" className={cn("text-background font-bold", colors.bgDark)}>
               <TypeIcon className="mr-1" />
               {config.label.toUpperCase()}
             </Badge>
@@ -41,7 +42,10 @@ export default function CategoryTree({ categories, type }: CategoryTreeProps) {
           {/* Empty state */}
           {!hasCategories() && (
             <div
-              className={cn("flex flex-col items-center justify-center rounded-md px-4 py-8 text-center", colors.bg)}
+              className={cn(
+                "flex flex-col items-center justify-center rounded-md px-4 py-8 text-center",
+                colors.bgLight,
+              )}
             >
               <TypeIcon className="mb-3 h-12 w-12" />
               <h3 className="font-medium">
@@ -62,9 +66,9 @@ export default function CategoryTree({ categories, type }: CategoryTreeProps) {
                 <div className="flex items-center">
                   {/* Show chevron only if has children */}
                   {category.children && category.children.length > 0 ? (
-                    <ChevronDown size={16} className={cn("mr-2", colors.text)} />
+                    <ChevronDown size={16} className={cn("mr-2", colors.textDark)} />
                   ) : (
-                    <Minus size={16} className={cn("mr-2", colors.text)} />
+                    <Minus size={16} className={cn("mr-2", colors.textDark)} />
                   )}
                   <span className="text-sm">{category.name}</span>
                 </div>
@@ -95,7 +99,7 @@ export default function CategoryTree({ categories, type }: CategoryTreeProps) {
                       className={cn("group flex items-center justify-between rounded-md p-1", colors.itemHover)}
                     >
                       <div className="flex items-center">
-                        <Minus size={12} className={cn("mr-2", colors.text)} />
+                        <Minus size={12} className={cn("mr-2", colors.textDark)} />
                         <span className="text-sm">{child.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
