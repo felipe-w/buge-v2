@@ -1,0 +1,1225 @@
+
+  
+I have attached two json:
+
+- A list of categories with their parent-child relationships and UUIDs (JSON).
+- A list of transactions extracted from a PDF bank statement (JSON).
+
+The transactions have categories suggested by the bank, but these are imprecise and do not match the categories I shared, which I want to use instead.
+
+Please perform the following task:
+
+1. Read the categories JSON to understand the category structure and their associated UUIDs. There are parent-child categories and standalone categories.
+2. Parent categories are identified by the 'children' property. They don't have uuid, but their children do, so you must use one the children's uuid instead. Standalone categories just use their own uuid.
+3. Categories are either income or expense. The transactions in the JSON are identified as either income or expense by the 'amount' field. (positive or negative)
+4. Review each transaction in the JSON and determine the best-fitting category based on the establishment name and other relevant fields.
+5. Replace the value of the 'category' field in the transactions with the UUID of the most appropriate category from the categories JSON I shared.
+6. If no suitable category can be determined, leave the 'category' field empty. Do not retain the original bank-suggested category.
+
+Return the updated transactions as a valid JSON array of objects with the same structure as the input transactions, but with updated 'category' values.
+Each transaction should have 'date', 'title', 'description', 'category', and 'amount' fields.
+Do not return any explanatory text before or after the JSON.
+
+
+  Here are the categories json:
+  [
+  {
+    "name": "Fixas",
+    "type": "expense",
+    "children": [
+      {
+        "id": "524c7979-b12d-441d-af6d-7598ef05b455",
+        "name": "Moradia"
+      },
+      {
+        "id": "5aa14bda-9180-437b-89e3-ba4a3b0b7184",
+        "name": "Contas da Casa"
+      },
+      {
+        "id": "6f8c35cd-5794-4138-ab3d-ff5888c7f100",
+        "name": "Assinaturas"
+      },
+      {
+        "id": "b9a79cbc-263e-40fa-8971-0fece72918cb",
+        "name": "Academia"
+      },
+      {
+        "id": "8d39d7d4-475f-4b16-8bbe-449aeffcbf34",
+        "name": "Faxineira"
+      },
+      {
+        "id": "d66a7f56-5bd3-47ea-b5d6-0cdd5d3ec9f9",
+        "name": "Educação"
+      }
+    ]
+  },
+  {
+    "name": "Alimentação",
+    "type": "expense",
+    "children": [
+      {
+        "id": "5e5644c2-e854-40ad-b550-690825773881",
+        "name": "Restaurante"
+      },
+      {
+        "id": "4440c8f5-baba-41f0-a500-17e033601860",
+        "name": "Delivery"
+      },
+      {
+        "id": "a35e97c8-0519-4cd2-a50a-7db745d1a626",
+        "name": "Supermercado"
+      }
+    ]
+  },
+  {
+    "id": "812735eb-40d3-4e09-b6f8-a84389cbe970",
+    "name": "Lazer",
+    "type": "expense"
+  },
+  {
+    "id": "085a9c40-3859-490d-9c56-cb2f9e790e82",
+    "name": "Compras",
+    "type": "expense"
+  },
+  {
+    "name": "Aura",
+    "type": "expense",
+    "children": [
+      {
+        "id": "e4bcabda-7a2a-4adb-ad90-b7caccb9d760",
+        "name": "Ração"
+      },
+      {
+        "id": "e987c5c2-bf2c-4068-8257-254c3b819ba5",
+        "name": "Creche e Petshop"
+      },
+      {
+        "id": "9c019f04-ad38-4831-9ab6-f8141349623b",
+        "name": "Vet e Saúde"
+      }
+    ]
+  },
+  {
+    "id": "0a339271-a3b4-474f-8d81-7e0e6ea99b13",
+    "name": "Transporte",
+    "type": "expense"
+  },
+  {
+    "id": "1211469d-dab2-4c08-ac15-63f0558f8927",
+    "name": "Outros",
+    "type": "expense"
+  },
+  {
+    "id": "f0fd385d-6bf3-49a9-a79b-9c5b3057b207",
+    "name": "Saúde",
+    "type": "expense"
+  },
+  {
+    "id": "d6fd5e18-3b9c-4448-abc4-6c444dcabbb0",
+    "name": "Viagens",
+    "type": "expense"
+  },
+  {
+    "id": "c18a5001-4637-4b43-9606-7dd060435cc8",
+    "name": "Férias",
+    "type": "expense"
+  },
+  {
+    "id": "6ca1655f-629e-4767-9e01-285419c85ebc",
+    "name": "Investimentos",
+    "type": "expense"
+  },
+  {
+    "name": "Salários",
+    "type": "income",
+    "children": [
+      {
+        "id": "ebc39baf-b883-4a33-8450-30c151c27708",
+        "name": "Felipe"
+      },
+      {
+        "id": "c1b1b09a-ec01-44f3-a708-35dbc3e8eb85",
+        "name": "Maju"
+      }
+    ]
+  },
+  {
+    "id": "b690ad80-cf86-48d3-955e-dc219173f898",
+    "name": "Rendimentos",
+    "type": "income"
+  },
+  {
+    "id": "1bc965bf-97de-4c69-8df7-664ab9ffe10c",
+    "name": "Outros",
+    "type": "income"
+  }
+]
+
+  Here are the transactions json:
+  [
+  {
+    "date": "2025-01-01",
+    "title": "CoconutBrasil",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "SAO PAULO",
+    "amount": "-15.00"
+  },
+  {
+    "date": "2025-01-01",
+    "title": "IFD*Joao Vitor da Silv",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-5.00"
+  },
+  {
+    "date": "2025-01-01",
+    "title": "IFD*FRUTAFAST BAR E LA",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-58.99"
+  },
+  {
+    "date": "2025-01-01",
+    "title": "Wellhub Gympass BR Gym",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "DIVERSOS",
+    "amount": "-399.90"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "IZAKABAR AOYAMA LTDA",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-396.63"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "ifood *IFD*nestle br",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-102.99"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "UNIV ANHEMBI MORUMBI",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "EDUCAÇÃO",
+    "amount": "-2656.20"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-17.87"
+  },
+  {
+    "date": "2025-01-04",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-23.91"
+  },
+  {
+    "date": "2025-01-05",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-11.94"
+  },
+  {
+    "date": "2025-01-05",
+    "title": "IFD*HUFFENBACHER COMER",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-189.00"
+  },
+  {
+    "date": "2025-01-05",
+    "title": "ifood *IFD*ISABELA A",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-38.16"
+  },
+  {
+    "date": "2025-01-06",
+    "title": "PETZ",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "HOBBY",
+    "amount": "-133.68"
+  },
+  {
+    "date": "2025-01-06",
+    "title": "ESTAPAR*ZAD*SAO*PAULO",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "DIVERSOS",
+    "amount": "-6.36"
+  },
+  {
+    "date": "2025-01-08",
+    "title": "DROGARIA SAO PAULO SA",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "SAÚDE",
+    "amount": "-104.98"
+  },
+  {
+    "date": "2025-01-10",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-9.97"
+  },
+  {
+    "date": "2025-01-10",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-10.96"
+  },
+  {
+    "date": "2025-01-10",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-18.93"
+  },
+  {
+    "date": "2025-01-10",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-24.81"
+  },
+  {
+    "date": "2025-01-11",
+    "title": "PETZ",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "HOBBY",
+    "amount": "-178.19"
+  },
+  {
+    "date": "2025-01-11",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-9.71"
+  },
+  {
+    "date": "2025-01-11",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-24.90"
+  },
+  {
+    "date": "2025-01-11",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-28.18"
+  },
+  {
+    "date": "2025-01-12",
+    "title": "LiveOscarFreire",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VESTUÁRIO",
+    "amount": "-375.84"
+  },
+  {
+    "date": "2025-01-12",
+    "title": "DAVVERO GELATO FELICE",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-20.99"
+  },
+  {
+    "date": "2025-01-14",
+    "title": "Wellhub Gympass BR Gym",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "DIVERSOS",
+    "amount": "-307.69"
+  },
+  {
+    "date": "2025-01-15",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-22.93"
+  },
+  {
+    "date": "2025-01-15",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-19.29"
+  },
+  {
+    "date": "2025-01-15",
+    "title": "MOMA OSTERIA",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-184.19"
+  },
+  {
+    "date": "2025-01-15",
+    "title": "CELULA MATER",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "SAÚDE",
+    "amount": "-1110.00"
+  },
+  {
+    "date": "2025-01-16",
+    "title": "ESTAPAR*ZAD*SAO***PAUL",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "DIVERSOS",
+    "amount": "-6.36"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-10.93"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-10.93"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "MERCADOLIVRE*3PRODUTO",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "DIVERSOS",
+    "amount": "-343.88"
+  },
+  {
+    "date": "2025-01-18",
+    "title": "AutoPostoDuque",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-380.80"
+  },
+  {
+    "date": "2025-01-19",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-17.92"
+  },
+  {
+    "date": "2025-01-19",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-30.93"
+  },
+  {
+    "date": "2025-01-22",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-22.97"
+  },
+  {
+    "date": "2025-01-22",
+    "title": "PARAFUZO* LIMPEZA#9EF8",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "DIVERSOS",
+    "amount": "-205.00"
+  },
+  {
+    "date": "2025-01-22",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-23.91"
+  },
+  {
+    "date": "2025-01-24",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-19.96"
+  },
+  {
+    "date": "2025-01-24",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-32.97"
+  },
+  {
+    "date": "2025-01-24",
+    "title": "IFD*IFOOD CLUB",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-5.95"
+  },
+  {
+    "date": "2025-01-25",
+    "title": "DROGASIL 2032",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "SAÚDE",
+    "amount": "-258.96"
+  },
+  {
+    "date": "2025-01-25",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-33.45"
+  },
+  {
+    "date": "2025-01-25",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-49.30"
+  },
+  {
+    "date": "2025-01-26",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-9.91"
+  },
+  {
+    "date": "2025-01-26",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-10.92"
+  },
+  {
+    "date": "2025-01-29",
+    "title": "99APP *99App",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-23.03"
+  },
+  {
+    "date": "2025-01-29",
+    "title": "UBER* TRIP",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "VEÍCULOS",
+    "amount": "-30.04"
+  },
+  {
+    "date": "2024-12-31",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-127.27"
+  },
+  {
+    "date": "2024-12-31",
+    "title": "RAPPI *RAPPI RAPPI BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-128.38"
+  },
+  {
+    "date": "2025-01-01",
+    "title": "CONECTCAR *Conectcar",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-150.00"
+  },
+  {
+    "date": "2025-01-01",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-39.90"
+  },
+  {
+    "date": "2025-01-01",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-99.90"
+  },
+  {
+    "date": "2025-01-01",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-149.90"
+  },
+  {
+    "date": "2025-01-01",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-35.50"
+  },
+  {
+    "date": "2025-01-02",
+    "title": "A QUINTA PET",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "SAO PAULO",
+    "amount": "-186.86"
+  },
+  {
+    "date": "2025-01-02",
+    "title": "MP *ALIEXPRESS",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-153.03"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-30.99"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "MERCADOLIVRE*SUBLIMEP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-178.20"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "Amazon Digital BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-74.60"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-15.17"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-20.81"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-97.93"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-77.90"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "IFD*CABANA BURGER S.A.",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-87.89"
+  },
+  {
+    "date": "2025-01-04",
+    "title": "IFD*PRIME CATER COMERC",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-87.10"
+  },
+  {
+    "date": "2025-01-04",
+    "title": "IFD*PAPILA RESTAURANTE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-73.89"
+  },
+  {
+    "date": "2025-01-05",
+    "title": "EBN*SPOTIFY",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-34.90"
+  },
+  {
+    "date": "2025-01-05",
+    "title": "AMAZON BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-114.79"
+  },
+  {
+    "date": "2025-01-05",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-386.99"
+  },
+  {
+    "date": "2025-01-06",
+    "title": "MP *GROWTHSUPPLEMENTS",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "Itapema",
+    "amount": "-260.77"
+  },
+  {
+    "date": "2025-01-07",
+    "title": "NETFLIX ENTRETENIMENTO",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-59.90"
+  },
+  {
+    "date": "2025-01-08",
+    "title": "MP *ALIEXPRESS",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-172.26"
+  },
+  {
+    "date": "2025-01-08",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-28.15"
+  },
+  {
+    "date": "2025-01-08",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-21.51"
+  },
+  {
+    "date": "2025-01-09",
+    "title": "MP *ALIEXPRESS",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-162.24"
+  },
+  {
+    "date": "2025-01-09",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-37.38"
+  },
+  {
+    "date": "2025-01-09",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-10.13"
+  },
+  {
+    "date": "2025-01-09",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-20.16"
+  },
+  {
+    "date": "2025-01-09",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-26.43"
+  },
+  {
+    "date": "2025-01-10",
+    "title": "RAPPIPRO",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-24.90"
+  },
+  {
+    "date": "2025-01-10",
+    "title": "IFD*FAT BUDDHA COMERCI",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-156.80"
+  },
+  {
+    "date": "2025-01-10",
+    "title": "IFD*OLGA RI ALIMENTOS",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-49.89"
+  },
+  {
+    "date": "2025-01-11",
+    "title": "REEBOK SPORTS CLUB",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-630.62"
+  },
+  {
+    "date": "2025-01-11",
+    "title": "RAPPI *RAPPI RAPPI BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-43.99"
+  },
+  {
+    "date": "2025-01-12",
+    "title": "IFD*CAVOUR RESTAURANTE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-190.99"
+  },
+  {
+    "date": "2025-01-13",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-151.80"
+  },
+  {
+    "date": "2025-01-13",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-81.73"
+  },
+  {
+    "date": "2025-01-14",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-32.80"
+  },
+  {
+    "date": "2025-01-14",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-25.98"
+  },
+  {
+    "date": "2025-01-15",
+    "title": "PG *NUVEM PITADANATURA",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-100.48"
+  },
+  {
+    "date": "2025-01-15",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-36.35"
+  },
+  {
+    "date": "2025-01-15",
+    "title": "Tembici",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "HOBBY",
+    "amount": "-37.90"
+  },
+  {
+    "date": "2025-01-15",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-35.22"
+  },
+  {
+    "date": "2025-01-16",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-36.20"
+  },
+  {
+    "date": "2025-01-16",
+    "title": "Booking.com40637404762",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-1375.03"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-36.32"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-44.92"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-24.45"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-44.04"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "RAPPI *RAPPI RAPPI BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-69.01"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "RAPPI *RAPPI RAPPI BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-50.39"
+  },
+  {
+    "date": "2025-01-18",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-28.11"
+  },
+  {
+    "date": "2025-01-18",
+    "title": "Uber UBER *TRIP HELP.U",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-16.56"
+  },
+  {
+    "date": "2025-01-18",
+    "title": "UBER* TRIP",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VEÍCULOS",
+    "amount": "-41.33"
+  },
+  {
+    "date": "2025-01-19",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-161.90"
+  },
+  {
+    "date": "2025-01-19",
+    "title": "LATAM AIR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "SAO PAULO",
+    "amount": "-1384.08"
+  },
+  {
+    "date": "2025-01-19",
+    "title": "MP *ALIEXPRESS",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-463.84"
+  },
+  {
+    "date": "2025-01-19",
+    "title": "Disney Plus",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-62.90"
+  },
+  {
+    "date": "2025-01-20",
+    "title": "MP *GROWTHSUPPLEMENTS",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "Itapema",
+    "amount": "-260.68"
+  },
+  {
+    "date": "2025-01-20",
+    "title": "MP *ALIEXPRESS",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-240.99"
+  },
+  {
+    "date": "2025-01-20",
+    "title": "Amazon Digital BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-24.99"
+  },
+  {
+    "date": "2025-01-20",
+    "title": "AMAZON SERVICOS DE VAR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-27.29"
+  },
+  {
+    "date": "2025-01-21",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-85.46"
+  },
+  {
+    "date": "2025-01-21",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-119.87"
+  },
+  {
+    "date": "2025-01-21",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-69.90"
+  },
+  {
+    "date": "2025-01-21",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-58.67"
+  },
+  {
+    "date": "2025-01-22",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-79.90"
+  },
+  {
+    "date": "2025-01-23",
+    "title": "PG *NUTURE NUTURE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-237.00"
+  },
+  {
+    "date": "2025-01-24",
+    "title": "AMAZON MARKETPLACE",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "36.20"
+  },
+  {
+    "date": "2025-01-28",
+    "title": "IFD*ASIA GOURMET SERVI",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-403.29"
+  },
+  {
+    "date": "2025-01-28",
+    "title": "DM *DLRAPPI BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "DIVERSOS",
+    "amount": "-28.92"
+  },
+  {
+    "date": "2025-01-29",
+    "title": "AMAZON BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-26.92"
+  },
+  {
+    "date": "2025-01-29",
+    "title": "AMAZON BR",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "VESTUÁRIO",
+    "amount": "-234.53"
+  },
+  {
+    "date": "2024-12-31",
+    "title": "PauloAlessandro Da",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "DIVERSOS",
+    "amount": "-22.00"
+  },
+  {
+    "date": "2025-01-03",
+    "title": "HTC SERVICOS E EVENTO",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "TURISMO E ENTRETENIMENTO",
+    "amount": "-200.00"
+  },
+  {
+    "date": "2025-01-05",
+    "title": "CpaGestaoDe",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-175.00"
+  },
+  {
+    "date": "2025-01-05",
+    "title": "DU BUTCHER",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-144.93"
+  },
+  {
+    "date": "2025-01-08",
+    "title": "AutoPostoDuque",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "VEÍCULOS",
+    "amount": "-33.98"
+  },
+  {
+    "date": "2025-01-08",
+    "title": "GOT COFFE COMERCIO D",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-324.20"
+  },
+  {
+    "date": "2025-01-09",
+    "title": "HORTIFRUTI LOJA N018",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-33.13"
+  },
+  {
+    "date": "2025-01-10",
+    "title": "DRA SPITZ PET SALON",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "DIVERSOS",
+    "amount": "-200.00"
+  },
+  {
+    "date": "2025-01-16",
+    "title": "HORTIFRUTI LOJA N018",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-94.88"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "ZIG*Mane Mercado",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-8.00"
+  },
+  {
+    "date": "2025-01-18",
+    "title": "HORTIFRUTI LOJA N018",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-187.59"
+  },
+  {
+    "date": "2025-01-18",
+    "title": "GEG COMERCIO DE ALIMEN",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-100.00"
+  },
+  {
+    "date": "2025-01-19",
+    "title": "HORTIFRUTI LOJA N018",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-7.55"
+  },
+  {
+    "date": "2025-01-22",
+    "title": "HORTIFRUTI LOJA N018",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-203.07"
+  },
+  {
+    "date": "2025-01-23",
+    "title": "FLASH PARK ESTACIONAME",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "VEÍCULOS",
+    "amount": "-35.00"
+  },
+  {
+    "date": "2025-01-23",
+    "title": "SERGIPE COMERCIO DE AL",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-194.00"
+  },
+  {
+    "date": "2025-01-25",
+    "title": "HORTIFRUTI LOJA N018",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-304.08"
+  },
+  {
+    "date": "2025-01-26",
+    "title": "VILA OLIMPIA",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-249.92"
+  },
+  {
+    "date": "2025-01-26",
+    "title": "PRACA SAO LOURENCO",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-530.00"
+  },
+  {
+    "date": "2025-01-28",
+    "title": "HORTIFRUTI LOJA N018",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-35.51"
+  },
+  {
+    "date": "2025-01-29",
+    "title": "HORTIFRUTI LOJA N018",
+    "description": "FELIPE G WANDERLEY 5659",
+    "category": "ALIMENTAÇÃO",
+    "amount": "-303.19"
+  },
+  {
+    "date": "2024-12-30",
+    "title": "RUMBO SUR CALAMA AIRE",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "Internacional",
+    "amount": "-23.58"
+  },
+  {
+    "date": "2024-12-30",
+    "title": "RUMBO SUR CALAMA AIRE",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "Internacional",
+    "amount": "-308.83"
+  },
+  {
+    "date": "2024-12-30",
+    "title": "IOF Tax",
+    "description": "MARIA JULIA MENEZES 6282",
+    "category": "Internacional",
+    "amount": "-14.61"
+  },
+  {
+    "date": "2025-01-20",
+    "title": "SQSP* INV166158290",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "Internacional",
+    "amount": "-273.79"
+  },
+  {
+    "date": "2025-01-20",
+    "title": "IOF Tax",
+    "description": "FELIPE G WANDERLEY 3602",
+    "category": "Internacional",
+    "amount": "-9.28"
+  }
+]
+  

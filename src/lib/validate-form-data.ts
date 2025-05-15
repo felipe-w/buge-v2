@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { headers } from "next/headers";
-import { unauthorized } from "next/navigation";
 import { User } from "better-auth";
 import { z } from "zod";
 
-import { auth } from "./auth";
+import { checkAuthSession } from "@/server/data/users";
+
 import { FormState } from "./validations";
 
 /**
@@ -96,16 +95,7 @@ export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
   action: ValidatedActionWithUserFunction<S, T>,
 ) {
   return async (prevState: FormState, formData: FormData): Promise<T> => {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    const user = session?.user;
-
-    if (!user) {
-      unauthorized();
-    }
-
+    const user = await checkAuthSession();
     const result = schema.safeParse(Object.fromEntries(formData));
     if (!result.success) {
       return {

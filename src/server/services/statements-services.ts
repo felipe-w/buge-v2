@@ -21,6 +21,7 @@ export async function processStatement({ id }: { id: string }) {
     console.log("Extracting transactions from statement");
     await updateStatement(statement.id, { status: "extracting" });
     const extractedTransactions = await extractTransactionsWithAI({ statement });
+    if (extractedTransactions.length === 0) throw new Error("Não foi possível extrair transações");
     await updateStatement(statement.id, { aiResponse: extractedTransactions, status: "categorizing" });
 
     // 2. categorization phase
@@ -28,6 +29,7 @@ export async function processStatement({ id }: { id: string }) {
     const categories = await formatHierarchicalCategories({ groupId: statement.account.groupId });
     const transactions = JSON.stringify(extractedTransactions, null, 2);
     const categorizedTransactions = await categorizeTransactionsWithAI({ categories, transactions });
+    if (categorizedTransactions.length === 0) throw new Error("Não foi possível categorizar transações");
     await updateStatement(statement.id, { categorizationResponse: categorizedTransactions });
 
     // 3. save categorized transactions to db
@@ -79,11 +81,11 @@ async function withRetries<T>(
 function getAIModel(modelName: string) {
   const models: { [key: string]: LanguageModelV1 } = {
     claude: anthropic("claude-3-7-sonnet-20250219"),
-    geminiPro: google("gemini-2.5-pro-exp-03-25"),
+    geminiPro: google("gemini-2.5-pro-preview-05-06"),
     geminiFlash: google("gemini-2.5-flash-preview-04-17"),
   };
 
-  return models[modelName] || google("gemini-2.5-pro-exp-03-25");
+  return models[modelName] || models.geminiPro;
 }
 
 async function extractTransactionsWithAI({

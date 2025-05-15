@@ -36,3 +36,17 @@ export async function setSelectedGroupId({ groupId, userId }: { groupId: string;
   if (!result) throw new Error("Grupo não selecionado");
   return result;
 }
+
+export async function checkAuthSession() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const user = session?.user;
+
+  if (!user) {
+    unauthorized();
+  }
+
+  return user;
+}

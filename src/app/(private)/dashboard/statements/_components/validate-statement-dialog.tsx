@@ -9,7 +9,7 @@ import { StatementWithAllJoins } from "@/lib/db/types";
 import { cn } from "@/lib/utils";
 
 import { Button, SubmitButton } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -20,11 +20,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
   CircleDollarSign,
+  ExternalLink,
   FileText,
   FileType2,
   Info,
@@ -85,6 +87,22 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
               <CardTitle className="flex items-center gap-2">
                 <Info size={20} /> Informações do Extrato
               </CardTitle>
+              <CardAction>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {statement.fileUrl && (
+                        <a href={statement.fileUrl} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
+                        </a>
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Ver Arquivo PDF</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardAction>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
@@ -256,16 +274,15 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                     </p>
                   </div>
                   <hr className="my-2 border-border/50" />
-                  <div className="flex justify-between items-center pt-1">
-                    <p className="text-base font-semibold">Resultado:</p>
+                  <div className="flex justify-end items-center pt-1">
                     {(Number(statement.expectedTotal) - Math.abs(netResult)).toFixed(2) === "0.00" ||
                     (Number(statement.expectedTotal) - Math.abs(netResult)).toFixed(2) === "-0.00" ? (
                       <span className="font-bold text-success-foreground flex items-center gap-1.5 text-base">
                         <CheckCircle2 className="h-5 w-5" /> Correto!
                       </span>
                     ) : (
-                      <span className="font-bold text-destructive-foreground flex items-center gap-1.5 text-base">
-                        <AlertTriangle className="h-5 w-5" />
+                      <span className="font-bold text-destructive flex items-center gap-1.5 text-base">
+                        <AlertTriangle size={20} />
                         Diferença:{" "}
                         {(Number(statement.expectedTotal) - Math.abs(netResult)).toLocaleString("pt-BR", {
                           style: "currency",

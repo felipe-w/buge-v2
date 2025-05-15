@@ -1,6 +1,6 @@
 import "server-only";
 
-import { put } from "@vercel/blob";
+import { del, put } from "@vercel/blob";
 import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/lib/db/drizzle";
@@ -40,10 +40,6 @@ export async function createStatement(statement: NewStatement) {
   return result[0];
 }
 
-export async function uploadToStorage({ content, statementId }: { content: File; statementId: string }) {
-  return await put(`statements/${statementId}.pdf`, content, { access: "public" });
-}
-
 export async function updateStatement(statementId: string, data: Partial<Statement>) {
   const result = await db.update(statements).set(data).where(eq(statements.id, statementId)).returning();
   return result[0];
@@ -79,4 +75,17 @@ export async function importTransactions(statementId: string) {
 
   const insertedCoreTransactions = await db.insert(transactions).values(transactionsToImport).returning();
   return insertedCoreTransactions;
+}
+
+export async function deleteStatement({ id }: { id: string }) {
+  const result = await db.delete(statements).where(eq(statements.id, id)).returning();
+  return result[0];
+}
+
+export async function uploadToStorage({ content, statementId }: { content: File; statementId: string }) {
+  return await put(`statements/${statementId}.pdf`, content, { access: "public" });
+}
+
+export async function removeFromStorage({ fileUrl }: { fileUrl: string }) {
+  await del(fileUrl);
 }

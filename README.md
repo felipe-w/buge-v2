@@ -2,10 +2,9 @@
 
 ### BLOG
 
-- validação não lá muito testada, mas tá pronta
-- não criei cenário de não validação, tem que ser algo tipo "excluir e tentar novamente"
-- preciso mostrar o arquivo né?
-- e link para validar transações individualmente
+- delete pré-revisão tá pronto
+- dialog de revisão, repensar?
+- ir para tela de transações após validar
 
 ### NEXT
 
@@ -34,3 +33,4 @@
 [ ] AUTH: Colocar o resend no lugar de enviar o email OTP
 [ ] reconsiderar date picker do shadcn (outdated)
 [ ] envio de email quando ficar pronto o rolê do statement
+[ ] acho que não pode ter dialogs dentro da tabela de transações, vai aparecer infinitos, repensar isso, tá ligado? editar e excluir

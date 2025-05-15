@@ -1,9 +1,20 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { validatedActionWithUser } from "@/lib/validate-form-data";
 import { FormState, NewStatementSchema, uuidSchema } from "@/lib/validations";
 
-import { createStatement, importTransactions, updateStatement, uploadToStorage } from "../data/statements";
+import {
+  createStatement,
+  deleteStatement,
+  getStatement,
+  importTransactions,
+  removeFromStorage,
+  updateStatement,
+  uploadToStorage,
+} from "../data/statements";
+import { checkAuthSession } from "../data/users";
 import { processStatement } from "../services/statements-services";
 
 export const createStatementAction = validatedActionWithUser(NewStatementSchema, async (data): Promise<FormState> => {
@@ -17,6 +28,7 @@ export const createStatementAction = validatedActionWithUser(NewStatementSchema,
 
     // send the statement to the background job/service
     processStatement({ id: updatedStatement.id });
+    revalidatePath(`/dashboard/statements`);
 
     return {
       success: true,
@@ -43,6 +55,9 @@ export const validateStatementAction = validatedActionWithUser(uuidSchema, async
       };
     }
 
+    // update the statement status to reviewing
+    await updateStatement(data.id, { status: "reviewing" });
+
     return {
       success: true,
       message: "Extrato enviado com sucesso",
@@ -55,3 +70,30 @@ export const validateStatementAction = validatedActionWithUser(uuidSchema, async
     };
   }
 });
+
+export async function deleteStatementAction({ id }: { id: string }) {
+  await checkAuthSession();
+
+  try {
+    const statement = await getStatement({ id });
+    if (statement.status === "reviewing" || statement.status === "completed") {
+      throw new Error("Não é possível excluir um extrato que está em revisão ou já foi validado");
+    }
+
+    await deleteStatement({ id: statement.id });
+    if (statement.fileUrl) {
+      await removeFromStorage({ fileUrl: statement.fileUrl });
+    }
+
+    return {
+      success: true,
+      message: "Extrato excluído com sucesso",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "Erro ao excluir extrato",
+      errors: { server: [error instanceof Error ? error.message : "Erro desconhecido no servidor"] },
+    };
+  }
+}
