@@ -28,10 +28,15 @@ export type GroupWithMembers = Group & { groupMembers: (GroupMember & { user: Us
 export type Statement = typeof statements.$inferSelect;
 export type StatementStatus = (typeof statementStatuses)[number];
 export type StatementTransaction = typeof statementTransactions.$inferSelect;
-export type StatementTransactionWithCategory = StatementTransaction & { category: Category | null };
 export type StatementWithAllJoins = Statement & {
   account: Account;
   statementTransactions: StatementTransactionWithCategory[];
+};
+
+export type StatementTransactionWithCategory = StatementTransaction & { category: Category | null };
+export type StatementTransactionsWithTransactions = StatementTransaction & {
+  statement: Statement & { account: Account };
+  importedTransaction?: TransactionWithAllJoins;
 };
 
 // transactions

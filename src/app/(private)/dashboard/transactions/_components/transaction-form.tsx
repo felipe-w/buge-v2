@@ -6,14 +6,14 @@ import { toast } from "sonner";
 
 import { createTransactionAction, editTransactionAction } from "@/server/actions/transactions-actions";
 import { Account, Budget, CategoryWithChildren, TransactionWithAllJoins } from "@/lib/db/types";
-import { categoryTypeConfig, cn } from "@/lib/utils";
+import { categoryTypeConfig, cn, formatDateToPtBr } from "@/lib/utils";
 
+import CategorySelector from "@/components/category-selector";
 import CategoryTypesSelector from "@/components/category-types-selector";
 import CurrencyMaskedInput from "@/components/currency-input";
 import { AlertError } from "@/components/ui/alert";
 import { Button, SubmitButton } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CalendarIcon, Check, ChevronsUpDown, InfoIcon } from "lucide-react";
+import { CalendarIcon, InfoIcon } from "lucide-react";
 
 interface TransactionFormProps {
   mode: "add" | "edit";
@@ -44,8 +44,6 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const action = mode === "add" ? createTransactionAction : editTransactionAction;
   const [state, formAction, isPending] = useActionState(action, { success: false, message: "" });
-  const [isCategoryPopoverOpen, setIsCategoryPopoverOpen] = useState(false);
-  const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
 
   const initialTransactionType = initialData?.transferId
     ? "transfer"
@@ -76,8 +74,6 @@ export function TransactionForm({
         ? cat.type === "income"
         : true,
   );
-
-  const flattenedCategories = categories.flatMap((cat) => [cat, ...(cat.children || [])]);
 
   return (
     <>
@@ -123,22 +119,15 @@ export function TransactionForm({
             <div className="flex flex-col gap-1.5">
               <input type="hidden" name="date" value={selectedDate?.toISOString() || ""} />
               <Label htmlFor="date">Data</Label>
-              <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
+              <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="input" disabled={isPending}>
                     <CalendarIcon className="mr-1" />
-                    {selectedDate ? selectedDate.toLocaleDateString("pt-BR") : <span>Selecione uma data</span>}
+                    {selectedDate ? formatDateToPtBr(selectedDate) : <span>Selecione uma data</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      setSelectedDate(date || new Date());
-                      setIsDatePopoverOpen(false);
-                    }}
-                  />
+                <PopoverContent className="w-auto p-2" align="start">
+                  <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} required />
                 </PopoverContent>
               </Popover>
               {state.errors?.date && <p className="text-destructive text-xs">{state.errors.date[0]}</p>}
@@ -186,7 +175,7 @@ export function TransactionForm({
                     {budgets?.map((budget) => (
                       <SelectItem key={budget.id} value={budget.id}>
                         {/* TODO: NEED TO CHECK WHEN WE HAVE BUDGETS */}
-                        {new Date(budget.date || "").toLocaleString("pt-BR", { month: "long", year: "numeric" })}
+                        {formatDateToPtBr(budget.date || "", { month: "long", year: "numeric" })}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -247,74 +236,13 @@ export function TransactionForm({
             ) : (
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="categoryId">Categoria</Label>
-                <Popover open={isCategoryPopoverOpen} onOpenChange={setIsCategoryPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="input" role="combobox" className="justify-between" disabled={isPending}>
-                      {flattenedCategories.find((cat) => cat.id === selectedCategory)?.name ?? (
-                        <span className="text-muted-foreground">Selecione a categoria</span>
-                      )}
-                      <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0 sm:min-w-[240px]" align="start" usePortal={false}>
-                    <Command>
-                      <CommandInput placeholder="Buscar categoria..." />
-                      <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
-                      <CommandList className="max-h-[200px]">
-                        {filteredCategories.map((category) => {
-                          if (category.children && category.children.length > 0) {
-                            return (
-                              <CommandGroup key={category.id} heading={category.name}>
-                                {category.children.map((child) => (
-                                  <CommandItem
-                                    key={child.id}
-                                    value={child.name}
-                                    onSelect={() => {
-                                      setSelectedCategory(selectedCategory === child.id ? "" : child.id);
-                                      setIsCategoryPopoverOpen(false);
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2",
-                                        selectedCategory === child.id ? "opacity-100" : "opacity-0",
-                                      )}
-                                    />
-                                    {child.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            );
-                          }
-                          // If it's a top-level category without children, render group + item
-                          else if (!category.parentId) {
-                            return (
-                              <CommandGroup key={category.id} heading={category.name}>
-                                <CommandItem
-                                  key={`${category.id}-item`} // Ensure unique key for the item within the group
-                                  value={category.name}
-                                  onSelect={() => {
-                                    setSelectedCategory(selectedCategory === category.id ? "" : category.id);
-                                    setIsCategoryPopoverOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2",
-                                      selectedCategory === category.id ? "opacity-100" : "opacity-0",
-                                    )}
-                                  />
-                                  {category.name}
-                                </CommandItem>
-                              </CommandGroup>
-                            );
-                          }
-                          return null;
-                        })}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <CategorySelector
+                  categories={filteredCategories}
+                  value={selectedCategory}
+                  onChange={(newCategoryId: string) => setSelectedCategory(newCategoryId || "")}
+                  triggerType="input"
+                  className="w-full"
+                />
                 <input type="hidden" name="categoryId" value={selectedCategory} />
                 {state.errors?.categoryId && <p className="text-destructive text-xs">{state.errors.categoryId[0]}</p>}
               </div>

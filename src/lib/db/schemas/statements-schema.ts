@@ -80,9 +80,8 @@ export const statementTransactions = pgTable(
     date: date("date").notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     description: text("description"),
-    categoryId: uuid("category_id").references(() => categories.id, {
-      onDelete: "set null",
-    }),
+    categoryId: uuid("category_id"),
+    categoryName: varchar("category_name", { length: 255 }),
     amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })

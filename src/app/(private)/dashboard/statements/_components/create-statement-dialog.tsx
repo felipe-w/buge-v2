@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { createStatementAction } from "@/server/actions/statements-actions";
 import { Account, Budget } from "@/lib/db/types";
+import { formatDateToPtBr } from "@/lib/utils";
 
 import CurrencyMaskedInput from "@/components/currency-input";
 import { Alert, AlertDescription, AlertError, AlertTitle } from "@/components/ui/alert";
@@ -185,7 +186,7 @@ export default function CreateStatementDialog({ accounts, groupId, budgets }: Cr
                             {budgets?.map((budget) => (
                               <SelectItem key={budget.id} value={budget.id}>
                                 {/* TODO: NEED TO CHECK WHEN WE HAVE BUDGETS */}
-                                {new Date(budget.date || "").toLocaleString("pt-BR", {
+                                {formatDateToPtBr(budget.date || "", {
                                   month: "long",
                                   year: "numeric",
                                 })}

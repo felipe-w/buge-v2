@@ -1,6 +1,6 @@
 import "server-only";
 
-import * as fs from "node:fs";
+import fs from "fs";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { generateObject, LanguageModelV1 } from "ai";
@@ -134,8 +134,7 @@ async function categorizeTransactionsWithAI({
   ${transactions}
   `;
 
-  // save prompt in a txt file
-  fs.writeFileSync("prompt.txt", FINAL_PROMPT);
+  fs.writeFileSync("final_prompt.txt", FINAL_PROMPT);
 
   return withRetries(async () => {
     const result = await generateObject({
@@ -178,7 +177,7 @@ Each transaction object should include:
 - "date" (YYYY-MM-DD format)
 - "title" (merchant/establishment name)
 - "description" (additional info like cardholder name and card digits, e.g. "JOHN DOE 1234")
-- "category" (if available, otherwise null)
+- "categoryName" (if available, otherwise null)
 - "amount" (as a string with decimal point - negative for purchases, e.g. "-10.50")
 
 Critical requirements:
@@ -189,7 +188,7 @@ Critical requirements:
 5. For negative amounts in the statement (marked with '-'), ensure they're represented correctly.
 6. VERIFY: Sum all transaction amounts and confirm it matches the statement total. If not, re-check the data.
 7. Given this is a credit card bill, positive values are purchases and negative values are reimbursements. I need you to return the signs reversed so we can clearly identify expenses and incomes.
-
+8. Leave "categoryId" empty for now.
 Return the data as a valid JSON array of objects. Do not include any explanatory text before or after the JSON.
 `;
 
@@ -200,13 +199,14 @@ Each transaction object should include:
 - "date" (YYYY-MM-DD format)
 - "title" (description of the transaction)
 - "description" (additional details if available, otherwise null)
-- "category" (if available, otherwise null)
+- "categoryName" (if available, otherwise null)
 - "amount" (as a string with decimal point, e.g. "10.50" for deposits, "-10.50" for withdrawals)
 
 Critical requirements:
 1. Do not include lines that are not transactions (like balance information).
 2. Determine the correct date, month and year from the document context.
 3. Make withdrawals/payments negative and deposits/credits positive.
+4. Leave "categoryId" empty for now.
 
 Return the data as a valid JSON array of objects. Do not include any explanatory text before or after the JSON.
 `;
@@ -221,14 +221,14 @@ The transactions have categories suggested by the bank, but these are imprecise 
 
 Please perform the following task:
 
-1. Read the categories JSON to understand the category structure and their associated UUIDs. There are parent-child categories and standalone categories.
-2. Parent categories are identified by the 'children' property. They don't have uuid, but their children do, so you must use one the children's uuid instead. Standalone categories just use their own uuid.
+1. Read the categories JSON to understand the category structure, their associated UUIDs and names. There are parent-child categories and standalone categories.
+2. Parent categories are identified by the 'children' property. They don't have uuid, but their children do, so you must use one the children's name and uuid instead. Standalone categories just use their own uuid.
 3. Categories are either income or expense. The transactions in the JSON are identified as either income or expense by the 'amount' field. (positive or negative)
 4. Review each transaction in the JSON and determine the best-fitting category based on the establishment name and other relevant fields.
-5. Replace the value of the 'category' field in the transactions with the UUID of the most appropriate category from the categories JSON I shared.
-6. If no suitable category can be determined, leave the 'category' field empty. Do not retain the original bank-suggested category.
+5. Add a categoryId field to the transactions with the UUID of the most appropriate category from the categories JSON I shared. Also replace the categoryName field with the name of the category.
+6. If no suitable category can be determined, don't add a categoryId field and leave the categoryName as it is.
 
-Return the updated transactions as a valid JSON array of objects with the same structure as the input transactions, but with updated 'category' values.
-Each transaction should have 'date', 'title', 'description', 'category', and 'amount' fields.
+Return the updated transactions as a valid JSON array of objects with the same structure as the input transactions, but with updated 'categoryId' and 'categoryName' values.
+Each transaction should have 'date', 'title', 'description', 'categoryId', 'categoryName' and 'amount' fields.
 Do not return any explanatory text before or after the JSON.
 `;

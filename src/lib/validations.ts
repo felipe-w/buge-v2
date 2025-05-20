@@ -168,7 +168,8 @@ export const ExtractedTransactionSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data deve estar no formato YYYY-MM-DD" }),
   title: z.string().min(1, { message: "Título é obrigatório" }),
   description: z.string().optional(),
-  category: z.string().optional(),
+  categoryId: z.string().optional(),
+  categoryName: z.string().optional(),
   amount: z.string(),
 });
 

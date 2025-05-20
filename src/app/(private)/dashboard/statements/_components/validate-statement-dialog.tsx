@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { validateStatementAction } from "@/server/actions/statements-actions";
 import { StatementWithAllJoins } from "@/lib/db/types";
-import { cn } from "@/lib/utils";
+import { cn, formatDateToPtBr } from "@/lib/utils";
 
 import { Button, SubmitButton } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -119,7 +119,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                   <div>
                     <p className="font-medium mb-0.5">Criado em</p>
                     <p className="text-muted-foreground">
-                      {statement.createdAt ? new Date(statement.createdAt).toLocaleDateString("pt-BR") : "-"}
+                      {statement.createdAt ? formatDateToPtBr(statement.createdAt) : "-"}
                     </p>
                   </div>
                 </div>

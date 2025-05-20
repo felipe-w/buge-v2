@@ -7,10 +7,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDateToPtBR(date: string) {
-  return new Date(date).toLocaleDateString("pt-BR");
-}
-
 // export function compensatedAmount(transaction: TransactionWithAllJoins) {
 //   const amount =
 //     transaction.compensationId && transaction.compensatedAmount !== null
@@ -30,6 +26,17 @@ export function formatCurrency(amount: string | number, options?: Intl.NumberFor
     currency: "BRL",
     ...options,
   }).format(amount);
+}
+
+export function formatDateToPtBr(date: string | Date, options?: Intl.DateTimeFormatOptions): string {
+  if (typeof date === "string") {
+    date = new Date(date);
+  }
+
+  return date.toLocaleDateString("pt-BR", {
+    timeZone: "UTC",
+    ...options,
+  });
 }
 
 export function getAccountTypeName(type: string) {

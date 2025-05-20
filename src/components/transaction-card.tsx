@@ -1,5 +1,5 @@
 import { TransactionWithAllJoins } from "@/lib/db/types";
-import { categoryTypeConfig, cn, formatCurrency, formatDateToPtBR } from "@/lib/utils";
+import { categoryTypeConfig, cn, formatCurrency, formatDateToPtBr } from "@/lib/utils";
 
 import { Landmark } from "lucide-react";
 import CategoryBadge from "./category-badge";
@@ -18,17 +18,19 @@ export function TransactionCard({ transaction }: { transaction: TransactionWithA
         <CardTitle>{transaction.title}</CardTitle>
         <CardDescription className="text-xs flex items-center">{transaction.description}</CardDescription>
         <CardAction className="flex items-center">
-          <span className="text-xs">{formatDateToPtBR(transaction.date)}</span>
+          <span className="text-xs">{formatDateToPtBr(transaction.date)}</span>
         </CardAction>
       </CardHeader>
       <CardContent className="px-4">
         <div className="flex flex-wrap gap-2 justify-between items-end">
-          {transaction.category && <CategoryBadge category={transaction.category} />}
           <Badge variant="secondary" className="text-xs">
             <Landmark size={14} className="mr-1" /> {transaction.account.name}
           </Badge>
+          {transaction.category && <CategoryBadge category={transaction.category} />}
           <div className="ml-auto">
-            <Badge className={cn("text-md tabular-nums", typeConfig.colors.textDark, typeConfig.colors.bgMedium)}>
+            <Badge
+              className={cn("text-sm font-bold tabular-nums", typeConfig.colors.textDark, typeConfig.colors.bgMedium)}
+            >
               {formatCurrency(transaction.amount)}
             </Badge>
           </div>
