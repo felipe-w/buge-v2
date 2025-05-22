@@ -1,10 +1,7 @@
-import { ColumnDef } from "@tanstack/react-table";
-
 import { getGroupAccounts } from "@/server/data/accounts";
 import { getGroupCategories } from "@/server/data/categories";
-import { getStatementTransactions } from "@/server/data/statements";
+import { getStatement } from "@/server/data/statements";
 import { getCurrentUser } from "@/server/data/users";
-import { TransactionWithAllJoins } from "@/lib/db/types";
 import { formatDateToPtBr } from "@/lib/utils";
 
 import { columns } from "@/components/transactions-data-table/columns";
@@ -13,19 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function StatementDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const statementTransactions = await getStatementTransactions({ id });
-  const statement = statementTransactions[0].statement;
-
-  const tableTransactions = statementTransactions.map((st) => ({
-    ...st,
-    accountId: statement.accountId,
-    budgetId: statement.budgetId,
-    budget: statement.budget,
-    account: statement.account,
-    compensatedAmount: st.importedTransaction?.compensatedAmount,
-    transferId: st.importedTransaction?.transferId,
-    compensationId: st.importedTransaction?.compensationId,
-  }));
+  const statement = await getStatement({ id });
 
   const { selectedGroupId: groupId } = await getCurrentUser();
   const categories = await getGroupCategories({ groupId: groupId! });
@@ -44,12 +29,15 @@ export default async function StatementDetailPage({ params }: { params: Promise<
           <CardTitle>Transações</CardTitle>
         </CardHeader>
         <CardContent>
-          <TransactionsDataTable
-            columns={columns as ColumnDef<TransactionWithAllJoins>[]}
-            data={tableTransactions}
-            categories={categories}
-            accounts={accounts}
-          />
+          {statement.transactions && (
+            <TransactionsDataTable
+              columns={columns}
+              data={statement.transactions}
+              categories={categories}
+              accounts={accounts}
+              initialColumnVisibility={{ account: false }}
+            />
+          )}
         </CardContent>
       </Card>
     </>

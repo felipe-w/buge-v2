@@ -1,10 +1,10 @@
 "use client";
 
-import { createColumnHelper, FilterFn } from "@tanstack/react-table";
+import { ColumnDef, createColumnHelper, FilterFn } from "@tanstack/react-table";
 import { DateRange } from "react-day-picker";
 
 import { TransactionWithAllJoins } from "@/lib/db/types";
-import { categoryTypeConfig, cn, formatCurrency, formatDateToPtBr } from "@/lib/utils";
+import { categoryTypeConfig, cn, formatCurrency, formatDateToPtBr, getTransactionType, toYYYYMMDD } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -45,28 +45,32 @@ const multiColumnFilterFn: FilterFn<TransactionWithAllJoins> = (row, columnId, f
 
 const categoryFilterFn: FilterFn<TransactionWithAllJoins> = (row, columnId, filterValue: string) => {
   if (!filterValue) return true;
-  const rowCategoryId = row.original.category?.id;
+  const rowCategoryId = row.original.categoryId;
   return rowCategoryId === filterValue;
 };
 
 const accountFilterFn: FilterFn<TransactionWithAllJoins> = (row, columnId, filterValue: string[]) => {
   if (!filterValue?.length) return true;
-  const account = row.getValue(columnId) as string;
+  const account = row.original.accountId;
   return filterValue.includes(account);
 };
 
+const transactionTypeFilterFn: FilterFn<TransactionWithAllJoins> = (row, _columnId, filterValue: string) => {
+  if (!filterValue) return true;
+  const transactionType = getTransactionType(row.original);
+  // Treat unknown types as NOT matching the active filter so they remain visible.
+  if (!transactionType) return true;
+  return transactionType === filterValue;
+};
+
 const dateFilterFn: FilterFn<TransactionWithAllJoins> = (row, _columnId, range: DateRange) => {
-  // no "from" → keep the row
   if (!range?.from) return true;
 
-  // 1. the row date already comes from the DB as "YYYY-MM-DD"
   const rowDate = row.original.date;
 
-  // 2. normalise picker dates to "YYYY-MM-DD" in *UTC*
-  const from = range.from.toISOString().slice(0, 10);
-  const to = range.to ? range.to.toISOString().slice(0, 10) : from;
+  const from = toYYYYMMDD(range.from);
+  const to = range.to ? toYYYYMMDD(range.to) : from;
 
-  // 3. simple inclusive comparison
   return rowDate >= from && rowDate <= to;
 };
 
@@ -93,6 +97,15 @@ export const columns = [
     enableHiding: false,
     size: 28,
   }),
+  // columnHelper.display({
+  //   id: "status",
+  //   header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+  //   cell: ({ row }) => {
+  //     const status = row.original.
+
+  //   },
+  //   size: 100,
+  // }),
   columnHelper.accessor("date", {
     id: "date",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Data" />,
@@ -107,6 +120,10 @@ export const columns = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Conta" />,
     size: 140,
     filterFn: accountFilterFn,
+  }),
+  columnHelper.accessor((row) => getTransactionType(row), {
+    id: "transactionType",
+    filterFn: transactionTypeFilterFn,
   }),
   columnHelper.accessor("title", {
     id: "title",
@@ -126,17 +143,27 @@ export const columns = [
     },
     size: 140,
     filterFn: categoryFilterFn,
+    sortingFn: (rowA, rowB) => {
+      const categoryA = rowA.original.category?.name ?? "";
+      const categoryB = rowB.original.category?.name ?? "";
+      return categoryA.localeCompare(categoryB);
+    },
   }),
   columnHelper.accessor("amount", {
     id: "amount",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Valor" className="justify-end" />,
     cell: (props) => {
-      const isExpense = Number(props.row.original.amount) < 0;
+      const transactionType = getTransactionType(props.row.original);
+
       return (
         <div
           className={cn(
             "font-bold tabular-nums text-right",
-            isExpense ? categoryTypeConfig.expense.colors.textDark : categoryTypeConfig.income.colors.textDark,
+            transactionType === "expense"
+              ? categoryTypeConfig.expense.colors.textDark
+              : transactionType === "income"
+                ? categoryTypeConfig.income.colors.textDark
+                : categoryTypeConfig.transfer.colors.textDark,
           )}
         >
           {formatCurrency(props.getValue())}
@@ -149,7 +176,6 @@ export const columns = [
       const amountB = Number(rowB.original.amount);
       return amountA - amountB;
     },
-    filterFn: multiColumnFilterFn,
   }),
   columnHelper.display({
     id: "actions",
@@ -176,4 +202,4 @@ export const columns = [
     },
     size: 32,
   }),
-];
+] as ColumnDef<TransactionWithAllJoins>[];

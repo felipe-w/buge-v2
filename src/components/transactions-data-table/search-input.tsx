@@ -29,10 +29,10 @@ export default function DataTableSearchInput<TData>({ table, debounceDelay = 300
   return (
     <>
       <Input
-        className={cn("peer min-w-80 ps-9 h-8", Boolean(filterValue) && "pe-9")}
+        className={cn("peer min-w-60 ps-9 h-8", Boolean(filterValue) && "pe-9")}
         value={filterValue}
         onChange={(e) => setFilterValue(e.target.value)}
-        placeholder="Buscar por título, descrição ou valor..."
+        placeholder="Título, descrição ou valor..."
         type="text"
         aria-label="Buscar por título, descrição ou valor"
       />

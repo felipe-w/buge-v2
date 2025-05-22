@@ -6,8 +6,10 @@ import { DateRange } from "react-day-picker";
 import { Account, CategoryWithChildren } from "@/lib/db/types";
 
 import CategorySelector from "../category-selector";
+import AccountFilter from "./account-filter";
 import { DateFilter } from "./date-filter";
 import DataTableSearchInput from "./search-input";
+import TransactionTypeFilter, { TransactionType } from "./transaction-type-filter";
 
 interface FilterBarProps<TData> {
   table: Table<TData>;
@@ -15,11 +17,18 @@ interface FilterBarProps<TData> {
   accounts?: Account[];
 }
 
-export default function FilterBar<TData>({ table, categories }: FilterBarProps<TData>) {
+export default function FilterBar<TData>({ table, categories, accounts }: FilterBarProps<TData>) {
   const categoryColumn = table.getColumn("category");
   const currentCategoryId = (categoryColumn?.getFilterValue() as string) ?? "";
+
   const dateColumn = table.getColumn("date");
   const currentDateRange = (dateColumn?.getFilterValue() as DateRange | undefined) ?? undefined;
+
+  const accountColumn = table.getColumn("account");
+  const currentAccountId = (accountColumn?.getFilterValue() as string) ?? "";
+
+  const transactionTypeColumn = table.getColumn("transactionType");
+  const currentTransactionType = (transactionTypeColumn?.getFilterValue() as TransactionType | undefined) ?? undefined;
 
   const handleCategoryChange = (newCategoryId: string) => {
     categoryColumn?.setFilterValue(newCategoryId || undefined);
@@ -27,6 +36,14 @@ export default function FilterBar<TData>({ table, categories }: FilterBarProps<T
 
   const handleDateChange = (newDateRange?: DateRange) => {
     dateColumn?.setFilterValue(newDateRange || undefined);
+  };
+
+  const handleAccountChange = (newAccountId?: string) => {
+    accountColumn?.setFilterValue(newAccountId || undefined);
+  };
+
+  const handleTransactionTypeChange = (newTransactionType?: TransactionType) => {
+    transactionTypeColumn?.setFilterValue(newTransactionType || undefined);
   };
 
   return (
@@ -42,6 +59,8 @@ export default function FilterBar<TData>({ table, categories }: FilterBarProps<T
           value={currentCategoryId}
           onChange={handleCategoryChange}
         />
+        {accounts && <AccountFilter accounts={accounts} value={currentAccountId} onChange={handleAccountChange} />}
+        <TransactionTypeFilter value={currentTransactionType} onChange={handleTransactionTypeChange} />
       </div>
     </div>
   );

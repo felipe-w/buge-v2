@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { validateStatementAction } from "@/server/actions/statements-actions";
 import { StatementWithAllJoins } from "@/lib/db/types";
-import { cn, formatDateToPtBr } from "@/lib/utils";
+import { cn, formatCurrency, formatDateToPtBr } from "@/lib/utils";
 
 import { Button, SubmitButton } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,7 +57,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
   }, [state]);
 
   // Calculate summaries
-  const transactions = statement.statementTransactions || [];
+  const transactions = statement.aiResponse || [];
   const dates = transactions.map((t) => new Date(t.date)).filter((d) => !isNaN(d.getTime()));
   const startDate = dates.length > 0 ? new Date(Math.min(...dates.map((d) => d.getTime()))) : null;
   const endDate = dates.length > 0 ? new Date(Math.max(...dates.map((d) => d.getTime()))) : null;
@@ -111,7 +111,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                   <Landmark size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-medium mb-0.5">Conta</p>
-                    <p className="text-muted-foreground">{statement.account.name}</p>
+                    <p className="text-muted-foreground">{statement.account?.name}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -148,12 +148,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                     <CircleDollarSign size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-medium mb-0.5">Total Esperado</p>
-                      <p className="text-muted-foreground tabular-nums">
-                        {Number(statement.expectedTotal).toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
-                      </p>
+                      <p className="text-muted-foreground tabular-nums">{formatCurrency(statement.expectedTotal)}</p>
                     </div>
                   </div>
                 )}
@@ -191,8 +186,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                 <div>
                   <p className="font-medium mb-0.5">Período</p>
                   <p className="text-muted-foreground">
-                    {startDate ? startDate.toLocaleDateString("pt-BR") : "-"} a{" "}
-                    {endDate ? endDate.toLocaleDateString("pt-BR") : "-"}
+                    {startDate ? formatDateToPtBr(startDate) : "-"} a {endDate ? formatDateToPtBr(endDate) : "-"}
                   </p>
                 </div>
               </div>
@@ -218,7 +212,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                           netResult > 0 ? "text-income-foreground" : "text-expense-foreground",
                         )}
                       >
-                        {netResult.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        {formatCurrency(netResult)}
                       </span>
                     </p>
                   </div>
@@ -228,13 +222,13 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                     <p>
                       <span className="text-muted-foreground">Receitas ({incomeTransactions.length}): </span>
                       <span className="text-income-foreground font-medium tabular-nums">
-                        {totalIncome.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        {formatCurrency(totalIncome)}
                       </span>
                     </p>
                     <p>
                       <span className="text-muted-foreground">Despesas ({expenseTransactions.length}): </span>
                       <span className="text-expense-foreground font-medium tabular-nums">
-                        {totalExpense.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        {formatCurrency(totalExpense)}
                       </span>
                     </p>
                   </div>
@@ -255,12 +249,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between items-center">
                     <p className="text-muted-foreground">Total Esperado do Extrato:</p>
-                    <p className="font-medium tabular-nums">
-                      {Number(statement.expectedTotal).toLocaleString("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      })}
-                    </p>
+                    <p className="font-medium tabular-nums">{formatCurrency(statement.expectedTotal)}</p>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-muted-foreground">Resultado das Transações:</p>
@@ -270,7 +259,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                         netResult >= 0 ? "text-income-foreground" : "text-expense-foreground",
                       )}
                     >
-                      {netResult.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      {formatCurrency(netResult)}
                     </p>
                   </div>
                   <hr className="my-2 border-border/50" />
@@ -283,11 +272,7 @@ export default function ValidateStatementDialog({ statement }: ValidateStatement
                     ) : (
                       <span className="font-bold text-destructive flex items-center gap-1.5 text-base">
                         <AlertTriangle size={20} />
-                        Diferença:{" "}
-                        {(Number(statement.expectedTotal) - Math.abs(netResult)).toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
+                        Diferença: {formatCurrency(Number(statement.expectedTotal) - Math.abs(netResult))}
                       </span>
                     )}
                   </div>

@@ -3,7 +3,6 @@ import { AnyPgColumn, index, pgTable, text, timestamp, uuid } from "drizzle-orm/
 
 import { budgetItems } from "./budgets-schema";
 import { groups } from "./groups-schema";
-import { statementTransactions } from "./statements-schema";
 import { transactions } from "./transactions-schema";
 
 // --- Categories Table ---
@@ -44,5 +43,4 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
   }),
   budgetItems: many(budgetItems),
   transactions: many(transactions),
-  statementTransactions: many(statementTransactions),
 }));

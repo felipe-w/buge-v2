@@ -4,7 +4,7 @@ import { date, index, numeric, pgTable, text, timestamp, uuid, varchar } from "d
 import { accounts } from "./accounts-schema";
 import { budgets } from "./budgets-schema";
 import { categories } from "./categories-schema";
-import { statementTransactions } from "./statements-schema";
+import { statements } from "./statements-schema";
 
 // --- Transactions Table ---
 export const transactions = pgTable(
@@ -20,6 +20,9 @@ export const transactions = pgTable(
       onDelete: "set null",
     }),
     budgetId: uuid("budget_id").references(() => budgets.id, {
+      onDelete: "set null",
+    }),
+    statementId: uuid("statement_id").references(() => statements.id, {
       onDelete: "set null",
     }),
     amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
@@ -39,6 +42,7 @@ export const transactions = pgTable(
     index("idx_transactions_category_id").on(t.categoryId),
     index("idx_transactions_budget_id").on(t.budgetId),
     index("idx_transactions_date").on(t.date),
+    index("idx_transactions_statement_id").on(t.statementId),
   ],
 );
 
@@ -59,5 +63,8 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
     fields: [transactions.transferId],
     references: [transactions.id],
   }),
-  statementTransactions: one(statementTransactions),
+  statement: one(statements, {
+    fields: [transactions.statementId],
+    references: [statements.id],
+  }),
 }));

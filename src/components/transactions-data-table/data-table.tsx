@@ -3,32 +3,43 @@
 import { useMemo, useState } from "react";
 import {
   ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   RowSelectionState,
+  Updater,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
-import { useQueryState, useQueryStates } from "nuqs";
-import { parseAsInteger } from "nuqs/server";
+import { useQueryState, useQueryStates, type UseQueryStateOptions } from "nuqs";
+import { parseAsInteger, parseAsString } from "nuqs/server";
+import { DateRange } from "react-day-picker";
 
 import { Account, CategoryWithChildren, TransactionWithAllJoins } from "@/lib/db/types";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import FilterBar from "./filter-bar";
 import { DataTablePagination } from "./pagination";
-import { getSortingStateParser } from "./parsers";
+import { getSortingStateParser, parseAsDateRange } from "./parsers";
 
 interface DataTableProps {
   columns: ColumnDef<TransactionWithAllJoins>[];
   data: TransactionWithAllJoins[];
   categories: CategoryWithChildren[];
   accounts: Account[];
+  initialColumnVisibility?: VisibilityState;
 }
 
-export function TransactionsDataTable({ columns, data, categories, accounts }: DataTableProps) {
+export function TransactionsDataTable({
+  columns,
+  data,
+  categories,
+  accounts,
+  initialColumnVisibility,
+}: DataTableProps) {
   const columnIds = useMemo(() => columns.map((c) => c.id).filter(Boolean) as string[], [columns]);
   const sortingParser = useMemo(
     () => getSortingStateParser(new Set(columnIds)).withDefault([{ id: "title", desc: false }]),
@@ -48,6 +59,32 @@ export function TransactionsDataTable({ columns, data, categories, accounts }: D
     },
   );
 
+  // State for column visibility
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    transactionType: false, // Hide transactionType column by default
+    ...initialColumnVisibility,
+  });
+
+  // Filters state with nuqs
+  const [titleColumnFilter, setTitleColumnFilter] = useQueryState("titleSearch", parseAsString.withDefault(""));
+  const [dateRange, setDateRange] = useQueryState<DateRange | undefined>("date", {
+    ...parseAsDateRange,
+    defaultValue: undefined as DateRange | undefined,
+  } as UseQueryStateOptions<DateRange | undefined> & { serialize: (value: DateRange | undefined) => string });
+  const [categoryId, setCategoryId] = useQueryState("category", parseAsString.withDefault(""));
+  const [accountId, setAccountId] = useQueryState("account", parseAsString.withDefault(""));
+  const [transactionType, setTransactionType] = useQueryState("type", parseAsString.withDefault(""));
+
+  const columnFilters = useMemo(() => {
+    const filters: ColumnFiltersState = [];
+    if (dateRange) filters.push({ id: "date", value: dateRange });
+    if (categoryId) filters.push({ id: "category", value: categoryId });
+    if (accountId) filters.push({ id: "account", value: accountId });
+    if (transactionType) filters.push({ id: "transactionType", value: transactionType });
+    if (titleColumnFilter) filters.push({ id: "title", value: titleColumnFilter });
+    return filters;
+  }, [dateRange, categoryId, accountId, transactionType, titleColumnFilter]);
+
   const table = useReactTable({
     data,
     columns,
@@ -58,6 +95,8 @@ export function TransactionsDataTable({ columns, data, categories, accounts }: D
       },
       sorting: sorting,
       rowSelection,
+      columnVisibility,
+      columnFilters,
     },
     getRowId: (row) => row.id,
     getCoreRowModel: getCoreRowModel(),
@@ -67,7 +106,23 @@ export function TransactionsDataTable({ columns, data, categories, accounts }: D
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
+    onColumnVisibilityChange: setColumnVisibility,
     enableRowSelection: true,
+    onColumnFiltersChange: (updater: Updater<ColumnFiltersState>) => {
+      const oldFilters = table.getState().columnFilters;
+      const newFilters = typeof updater === "function" ? updater(oldFilters) : updater;
+
+      const getFilterValue = <T extends string | DateRange | undefined>(id: string, defaultValue: T): T => {
+        const filter = newFilters.find((f) => f.id === id);
+        return filter ? (filter.value as T) : defaultValue;
+      };
+
+      setDateRange(getFilterValue<DateRange | undefined>("date", undefined) ?? null);
+      setCategoryId(getFilterValue<string>("category", "") ?? null);
+      setAccountId(getFilterValue<string>("account", "") ?? undefined);
+      setTransactionType(getFilterValue<string>("transactionType", "") ?? null);
+      setTitleColumnFilter(getFilterValue<string>("title", "") ?? null);
+    },
   });
 
   return (

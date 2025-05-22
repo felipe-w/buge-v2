@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import { Category, CategoryWithChildren } from "@/lib/db/types";
 import { categoryTypeConfig, cn } from "@/lib/utils";
@@ -8,116 +8,17 @@ import { categoryTypeConfig, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CheckIcon, ChevronDownIcon, FilterIcon, XCircle } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, TagIcon, XCircle } from "lucide-react";
 import CategoryBadge from "./category-badge";
 import { Separator } from "./ui/separator";
 
 // Define a type for category type configuration
 type CategoryTypeConfig = (typeof categoryTypeConfig)[keyof typeof categoryTypeConfig];
 
-interface CategoryItemProps {
-  category: Category;
-  currentValue: string;
-  onSelect: (value: string) => void;
-  className?: string;
-  icon?: React.ElementType; // Optional icon for specific items if needed
-  iconConfig?: CategoryTypeConfig; // For items that need type-based icon/color
-}
-
-const CategorySelectItem: React.FC<CategoryItemProps> = ({
-  category,
-  currentValue,
-  onSelect,
-  className,
-  icon: ItemIcon,
-  iconConfig,
-}) => (
-  <CommandItem
-    key={category.id}
-    value={category.name}
-    onSelect={() => {
-      onSelect(category.id);
-    }}
-    className={cn("data-[selected=true]:bg-muted", className)}
-  >
-    <div className="flex items-center">
-      {ItemIcon && iconConfig && <ItemIcon size={14} className={cn(iconConfig.colors.textDark)} />}
-      <CheckIcon className={cn("mr-1", currentValue === category.id ? "opacity-100" : "opacity-0")} />
-      {category.name}
-    </div>
-  </CommandItem>
-);
-
-interface ParentCategoryGroupProps {
-  parentCategory: CategoryWithChildren;
-  typeConfig: CategoryTypeConfig;
-  currentValue: string;
-  onItemSelect: (value: string) => void;
-}
-
-const ParentCategoryItems: React.FC<ParentCategoryGroupProps> = ({
-  parentCategory,
-  typeConfig,
-  currentValue,
-  onItemSelect,
-}) => {
-  const ParentIcon = typeConfig.icon;
-  return (
-    <CommandGroup
-      key={parentCategory.id}
-      heading={
-        <div className="flex items-center">
-          <ParentIcon size={14} className={cn("mr-2", typeConfig.colors.textDark)} />
-          <span className={cn(typeConfig.colors.textDark)}>{parentCategory.name}</span>
-        </div>
-      }
-      className={cn("border-b", typeConfig.colors.bgLight)}
-    >
-      {parentCategory.children!.map((child) => (
-        <CategorySelectItem key={child.id} category={child} currentValue={currentValue} onSelect={onItemSelect} />
-      ))}
-    </CommandGroup>
-  );
-};
-
-interface StandaloneGroupProps {
-  title: string;
-  categories: CategoryWithChildren[];
-  typeConfig: CategoryTypeConfig;
-  currentValue: string;
-  onItemSelect: (value: string) => void;
-}
-
-const StandaloneCategoryItemsGroup: React.FC<StandaloneGroupProps> = ({
-  title,
-  categories,
-  typeConfig,
-  currentValue,
-  onItemSelect,
-}) => {
-  if (categories.length === 0) return null;
-  const GroupIcon = typeConfig.icon;
-  return (
-    <CommandGroup
-      heading={
-        <div className="flex items-center">
-          <GroupIcon size={14} className={cn("mr-2", typeConfig.colors.textDark)} />
-          <span className={cn(typeConfig.colors.textDark)}>{title}</span>
-        </div>
-      }
-      className={cn("border-b", typeConfig.colors.bgLight)}
-    >
-      {categories.map((category) => (
-        <CategorySelectItem key={category.id} category={category} currentValue={currentValue} onSelect={onItemSelect} />
-      ))}
-    </CommandGroup>
-  );
-};
-
 interface CategorySelectorProps {
   categories: CategoryWithChildren[];
-  value?: string; // To control the component from outside
-  onChange?: (value: string) => void; // To report changes
+  value?: string;
+  onChange?: (value: string) => void;
   triggerType?: "input" | "button";
   className?: string;
 }
@@ -131,34 +32,103 @@ export default function CategorySelector({
 }: CategorySelectorProps) {
   const id = useId();
   const [open, setOpen] = useState<boolean>(false);
-  // Use internal state if not controlled, otherwise use controlledValue
   const [internalValue, setInternalValue] = useState<string>("");
 
+  // Use controlled or internal state
   const value = controlledValue !== undefined ? controlledValue : internalValue;
-  const setValueState = (newValue: string) => {
+
+  // Effect to sync internalValue with controlledValue
+  useEffect(() => {
+    if (controlledValue !== undefined) {
+      setInternalValue(controlledValue);
+    }
+  }, [controlledValue]);
+
+  // Flattened list of all categories for lookup
+  const flattenedCategories = useMemo(() => categories.flatMap((cat) => [cat, ...(cat.children || [])]), [categories]);
+
+  // Find selected category data
+  const selectedCategory = value ? flattenedCategories.find((cat) => cat.id === value) : undefined;
+
+  // Organize categories by type (expense/income) and structure (parents/standalone)
+  const organizedCategories = useMemo(() => {
+    const result = {
+      expense: { parents: [] as CategoryWithChildren[], standalone: [] as Category[] },
+      income: { parents: [] as CategoryWithChildren[], standalone: [] as Category[] },
+    };
+
+    categories.forEach((category) => {
+      const type = category.type as keyof typeof result;
+      if (!result[type]) return;
+
+      const hasChildren = category.children && category.children.length > 0;
+
+      if (hasChildren) {
+        result[type].parents.push(category);
+      } else if (!category.parentId) {
+        result[type].standalone.push(category);
+      }
+    });
+
+    return result;
+  }, [categories]);
+
+  const handleCategorySelect = (selectedId: string) => {
+    // Toggle selection if clicking the same category
+    const newValue = selectedId === value ? "" : selectedId;
+
+    // Update state and call onChange
     if (controlledValue === undefined) {
       setInternalValue(newValue);
     }
-    if (onChange) {
-      onChange(newValue);
-    }
-  };
+    onChange?.(newValue);
 
-  const flattenedCategories = categories.flatMap((cat) => [cat, ...(cat.children || [])]);
-
-  const handleItemSelect = (selectedId: string) => {
-    const newValue = selectedId === value ? "" : selectedId;
-    setValueState(newValue);
     setOpen(false);
   };
 
-  console.log(value);
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (controlledValue === undefined) {
+      setInternalValue("");
+    }
+    onChange?.("");
+  };
 
-  const expenseCategories = categories.filter((c) => c.type === "expense");
-  const incomeCategories = categories.filter((c) => c.type === "income");
+  // Render a category group with title
+  const renderCategoryGroup = (
+    title: React.ReactNode,
+    items: Category[],
+    typeConfig: CategoryTypeConfig,
+    key?: string,
+  ) => {
+    if (!items || items.length === 0) return null;
 
-  const expenseConfig = categoryTypeConfig.expense;
-  const incomeConfig = categoryTypeConfig.income;
+    return (
+      <CommandGroup key={key} heading={title} className={cn("border-b", typeConfig.colors.bgLight)}>
+        {items.map((item) => (
+          <CommandItem
+            key={item.id}
+            value={item.name}
+            onSelect={() => handleCategorySelect(item.id)}
+            className="data-[selected=true]:bg-muted"
+          >
+            <div className="flex items-center">
+              <CheckIcon className={cn("mr-1", value === item.id ? "opacity-100" : "opacity-0")} />
+              {item.name}
+            </div>
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    );
+  };
+
+  // Create heading with icon for category groups
+  const createGroupHeading = (title: string, config: CategoryTypeConfig) => (
+    <div className="flex items-center">
+      <config.icon size={14} className={cn("mr-2", config.colors.textDark)} />
+      <span className={cn(config.colors.textDark)}>{title}</span>
+    </div>
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -170,20 +140,17 @@ export default function CategorySelector({
             size="sm"
             className={cn("border-dashed", !value && "text-muted-foreground", className)}
           >
-            <FilterIcon />
+            <TagIcon />
             Categoria
-            {value && (
+            {value && selectedCategory && (
               <>
                 <Separator orientation="vertical" className="mx-0.5 data-[orientation=vertical]:h-4" />
-                <CategoryBadge category={flattenedCategories.find((category) => category.id === value)!} />
+                <CategoryBadge category={selectedCategory} />
                 <div
                   role="button"
                   aria-label="Limpar filtro de categoria"
                   tabIndex={0}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setValueState("");
-                  }}
+                  onClick={handleClear}
                   className="ml-1 text-muted-foreground hover:text-foreground"
                 >
                   <XCircle size={16} />
@@ -200,7 +167,7 @@ export default function CategorySelector({
             className={cn("justify-between", className)}
           >
             <span className={cn("truncate", !value && "text-muted-foreground")}>
-              {value ? flattenedCategories.find((category) => category.id === value)?.name : "Selecione uma categoria"}
+              {selectedCategory?.name || "Selecione uma categoria"}
             </span>
             <ChevronDownIcon size={16} className="text-muted-foreground/80 shrink-0" aria-hidden="true" />
           </Button>
@@ -212,49 +179,41 @@ export default function CategorySelector({
           <CommandList>
             <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
 
-            {/* --- Expense Categories --- */}
-            {expenseCategories
-              .filter((category) => category.children && category.children.length > 0)
-              .map((category) => (
-                <ParentCategoryItems
-                  key={category.id}
-                  parentCategory={category}
-                  typeConfig={expenseConfig}
-                  currentValue={value}
-                  onItemSelect={handleItemSelect}
-                />
-              ))}
-            <StandaloneCategoryItemsGroup
-              title="Outras Despesas"
-              categories={expenseCategories.filter(
-                (category) => !category.parentId && (!category.children || category.children.length === 0),
-              )}
-              typeConfig={expenseConfig}
-              currentValue={value}
-              onItemSelect={handleItemSelect}
-            />
+            {/* Expense Parent Categories */}
+            {organizedCategories.expense.parents.map((parentCategory) =>
+              renderCategoryGroup(
+                createGroupHeading(parentCategory.name, categoryTypeConfig.expense),
+                parentCategory.children || [],
+                categoryTypeConfig.expense,
+                parentCategory.id,
+              ),
+            )}
 
-            {/* --- Income Categories --- */}
-            {incomeCategories
-              .filter((category) => category.children && category.children.length > 0)
-              .map((category) => (
-                <ParentCategoryItems
-                  key={category.id}
-                  parentCategory={category}
-                  typeConfig={incomeConfig}
-                  currentValue={value}
-                  onItemSelect={handleItemSelect}
-                />
-              ))}
-            <StandaloneCategoryItemsGroup
-              title="Outras Receitas"
-              categories={incomeCategories.filter(
-                (category) => !category.parentId && (!category.children || category.children.length === 0),
+            {/* Standalone Expense Categories */}
+            {organizedCategories.expense.standalone.length > 0 &&
+              renderCategoryGroup(
+                createGroupHeading("Categorias Avulsas", categoryTypeConfig.expense),
+                organizedCategories.expense.standalone,
+                categoryTypeConfig.expense,
               )}
-              typeConfig={incomeConfig}
-              currentValue={value}
-              onItemSelect={handleItemSelect}
-            />
+
+            {/* Income Parent Categories */}
+            {organizedCategories.income.parents.map((parentCategory) =>
+              renderCategoryGroup(
+                createGroupHeading(parentCategory.name, categoryTypeConfig.income),
+                parentCategory.children || [],
+                categoryTypeConfig.income,
+                parentCategory.id,
+              ),
+            )}
+
+            {/* Standalone Income Categories */}
+            {organizedCategories.income.standalone.length > 0 &&
+              renderCategoryGroup(
+                createGroupHeading("Categorias Avulsas", categoryTypeConfig.income),
+                organizedCategories.income.standalone,
+                categoryTypeConfig.income,
+              )}
           </CommandList>
         </Command>
       </PopoverContent>

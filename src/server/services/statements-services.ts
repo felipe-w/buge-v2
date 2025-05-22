@@ -1,42 +1,30 @@
 import "server-only";
 
-import fs from "fs";
-import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
-import { generateObject, LanguageModelV1 } from "ai";
+import { generateObject } from "ai";
 import { z } from "zod";
 
 import { StatementWithAllJoins } from "@/lib/db/types";
 import { ExtractedTransactionSchema } from "@/lib/validations";
 
 import { getGroupCategories } from "../data/categories";
-import { addStatementTransactions, getStatement, updateStatement } from "../data/statements";
+import { getStatement, updateStatement } from "../data/statements";
 
 export async function processStatement({ id }: { id: string }) {
   try {
-    // 0. retrieve statement data from db
+    // 1. retrieve statement data and categories from db
     const statement = await getStatement({ id });
-
-    // 1. extraction phase
-    console.log("Extracting transactions from statement");
-    await updateStatement(statement.id, { status: "extracting" });
-    const extractedTransactions = await extractTransactionsWithAI({ statement });
-    if (extractedTransactions.length === 0) throw new Error("Não foi possível extrair transações");
-    await updateStatement(statement.id, { aiResponse: extractedTransactions, status: "categorizing" });
-
-    // 2. categorization phase
-    console.log("Categorizing transactions");
     const categories = await formatHierarchicalCategories({ groupId: statement.account.groupId });
-    const transactions = JSON.stringify(extractedTransactions, null, 2);
-    const categorizedTransactions = await categorizeTransactionsWithAI({ categories, transactions });
-    if (categorizedTransactions.length === 0) throw new Error("Não foi possível categorizar transações");
-    await updateStatement(statement.id, { categorizationResponse: categorizedTransactions });
 
-    // 3. save categorized transactions to db
-    console.log("saving transactions to statement_transactions table");
-    await addStatementTransactions(statement.id, categorizedTransactions);
-    await updateStatement(statement.id, { status: "validating" });
-    console.log("background steps finalized!");
+    // Combined extraction and categorization step
+    console.log("Extracting and categorizing transactions from statement");
+    await updateStatement(statement.id, { status: "extracting" });
+    const categorizedTransactions = await extractAndCategorizeTransactionsWithAI({ statement, categories });
+    if (categorizedTransactions.length === 0) throw new Error("Não foi possível extrair e categorizar transações");
+
+    // Transactions ready to be validated and imported
+    await updateStatement(statement.id, { aiResponse: categorizedTransactions, status: "validating" });
+    console.log("Transactions extracted and categorized successfully");
   } catch (error) {
     console.error(error);
     await updateStatement(id, {
@@ -78,72 +66,37 @@ async function withRetries<T>(
   throw new Error("Retry logic failed unexpectedly after all attempts.");
 }
 
-function getAIModel(modelName: string) {
-  const models: { [key: string]: LanguageModelV1 } = {
-    claude: anthropic("claude-3-7-sonnet-20250219"),
-    geminiPro: google("gemini-2.5-pro-preview-05-06"),
-    geminiFlash: google("gemini-2.5-flash-preview-04-17"),
-  };
-
-  return models[modelName] || models.geminiPro;
-}
-
-async function extractTransactionsWithAI({
+async function extractAndCategorizeTransactionsWithAI({
   statement,
-  aiModel,
+  categories,
 }: {
   statement: StatementWithAllJoins;
-  aiModel?: LanguageModelV1;
+  categories: string;
 }) {
-  const prompt = statement.statementType === "credit_card" ? PROMPT_CREDIT_CARD : PROMPT_BANK_STATEMENT;
+  // Select the base prompt based on statement type
+  const basePrompt = statement.statementType === "credit_card" ? PROMPT_CREDIT_CARD : PROMPT_BANK_STATEMENT;
+
+  // Create the combined prompt with categories information
+  const FINAL_PROMPT = `
+  ${basePrompt}
+
+  Additionally, I want you to categorize each transaction using the following categories:
+  ${categories}
+
+  ${PROMPT_CATEGORIZATION_INSTRUCTIONS}
+  `;
 
   return withRetries(async () => {
     const result = await generateObject({
-      model: aiModel || getAIModel("geminiPro"),
+      model: google("gemini-2.5-pro-preview-05-06"),
       schema: z.array(ExtractedTransactionSchema),
       messages: [
         {
           role: "user",
           content: [
-            { type: "text", text: prompt },
+            { type: "text", text: FINAL_PROMPT },
             { type: "file", mimeType: "application/pdf", data: statement.fileUrl! },
           ],
-        },
-      ],
-    });
-    return result.object;
-  });
-}
-
-async function categorizeTransactionsWithAI({
-  categories,
-  transactions,
-  aiModel,
-}: {
-  categories: string;
-  transactions: string;
-  aiModel?: LanguageModelV1;
-}) {
-  const FINAL_PROMPT = `
-  ${PROMPT_CATEGORIZATION}
-
-  Here are the categories json:
-  ${categories}
-
-  Here are the transactions json:
-  ${transactions}
-  `;
-
-  fs.writeFileSync("final_prompt.txt", FINAL_PROMPT);
-
-  return withRetries(async () => {
-    const result = await generateObject({
-      model: aiModel || getAIModel("geminiFlash"),
-      schema: z.array(ExtractedTransactionSchema),
-      messages: [
-        {
-          role: "user",
-          content: [{ type: "text", text: FINAL_PROMPT }],
         },
       ],
     });
@@ -170,6 +123,7 @@ async function formatHierarchicalCategories({ groupId }: { groupId: string }) {
 
   return JSON.stringify(jsonData, null, 2);
 }
+
 const PROMPT_CREDIT_CARD = `
 I am attaching a credit card statement as PDF. Extract ALL transactions and return them as a structured JSON array of objects.
 
@@ -211,24 +165,13 @@ Critical requirements:
 Return the data as a valid JSON array of objects. Do not include any explanatory text before or after the JSON.
 `;
 
-const PROMPT_CATEGORIZATION = `
-I have attached two json:
+const PROMPT_CATEGORIZATION_INSTRUCTIONS = `
+For each transaction, assign a category based on these rules:
 
-- A list of categories with their parent-child relationships and UUIDs (JSON).
-- A list of transactions extracted from a PDF bank statement (JSON).
-
-The transactions have categories suggested by the bank, but these are imprecise and do not match the categories I shared, which I want to use instead.
-
-Please perform the following task:
-
-1. Read the categories JSON to understand the category structure, their associated UUIDs and names. There are parent-child categories and standalone categories.
-2. Parent categories are identified by the 'children' property. They don't have uuid, but their children do, so you must use one the children's name and uuid instead. Standalone categories just use their own uuid.
-3. Categories are either income or expense. The transactions in the JSON are identified as either income or expense by the 'amount' field. (positive or negative)
-4. Review each transaction in the JSON and determine the best-fitting category based on the establishment name and other relevant fields.
-5. Add a categoryId field to the transactions with the UUID of the most appropriate category from the categories JSON I shared. Also replace the categoryName field with the name of the category.
-6. If no suitable category can be determined, don't add a categoryId field and leave the categoryName as it is.
-
-Return the updated transactions as a valid JSON array of objects with the same structure as the input transactions, but with updated 'categoryId' and 'categoryName' values.
-Each transaction should have 'date', 'title', 'description', 'categoryId', 'categoryName' and 'amount' fields.
-Do not return any explanatory text before or after the JSON.
+1. Parent categories are identified by the 'children' property. They don't have uuid, but their children do, so you must use one of the children's name and uuid.
+2. Standalone categories just use their own uuid.
+3. Match transaction type (income/expense based on amount sign) with the category type.
+4. For each transaction, determine the best-fitting category based on title and description.
+5. Fill the "categoryId" field with the UUID of the chosen category and the "categoryName" field with the category name.
+6. If no suitable category can be determined, leave categoryId as null or empty.
 `;

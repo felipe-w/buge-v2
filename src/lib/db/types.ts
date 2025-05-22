@@ -4,7 +4,7 @@ import { accounts, accountTypes } from "./schemas/accounts-schema";
 import { budgets } from "./schemas/budgets-schema";
 import { categories } from "./schemas/categories-schema";
 import { groupMembers, groups } from "./schemas/groups-schema";
-import { statements, statementStatuses, statementTransactions } from "./schemas/statements-schema";
+import { statements, statementStatuses } from "./schemas/statements-schema";
 import { transactions } from "./schemas/transactions-schema";
 
 // accounts
@@ -27,16 +27,9 @@ export type GroupWithMembers = Group & { groupMembers: (GroupMember & { user: Us
 // statements
 export type Statement = typeof statements.$inferSelect;
 export type StatementStatus = (typeof statementStatuses)[number];
-export type StatementTransaction = typeof statementTransactions.$inferSelect;
 export type StatementWithAllJoins = Statement & {
   account: Account;
-  statementTransactions: StatementTransactionWithCategory[];
-};
-
-export type StatementTransactionWithCategory = StatementTransaction & { category: Category | null };
-export type StatementTransactionsWithTransactions = StatementTransaction & {
-  statement: Statement & { account: Account };
-  importedTransaction?: TransactionWithAllJoins;
+  transactions?: TransactionWithAllJoins[];
 };
 
 // transactions
@@ -48,6 +41,8 @@ export type TransactionWithAllJoins = Transaction & {
   budget?: Budget | null;
   transfer?: TransactionWithAccount | null;
 };
+
+export type TransactionType = "transfer" | "expense" | "income";
 
 // users
 export type User = UserFromBetterAuth & {

@@ -4,14 +4,10 @@ import { del, put } from "@vercel/blob";
 import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/lib/db/drizzle";
-import {
-  statements,
-  statementTransactions,
-  statementTransactions as statementTransactionsSchema,
-} from "@/lib/db/schemas/statements-schema";
+import { statements } from "@/lib/db/schemas/statements-schema";
 import { transactions } from "@/lib/db/schemas/transactions-schema";
 import { Statement, StatementWithAllJoins } from "@/lib/db/types";
-import { ExtractedTransaction, NewStatement } from "@/lib/validations";
+import { NewStatement } from "@/lib/validations";
 
 import { getGroupAccounts } from "./accounts";
 
@@ -23,7 +19,7 @@ export async function getGroupStatements({ groupId }: { groupId: string }) {
       statements.accountId,
       accounts.map((account) => account.id),
     ),
-    with: { statementTransactions: { with: { category: true } }, account: true },
+    with: { account: true },
   });
   return result;
 }
@@ -31,30 +27,15 @@ export async function getGroupStatements({ groupId }: { groupId: string }) {
 export async function getStatement({ id }: { id: string }): Promise<StatementWithAllJoins> {
   const result = await db.query.statements.findFirst({
     where: eq(statements.id, id),
-    with: { statementTransactions: { with: { category: true } }, account: true },
-  });
-
-  if (!result) throw new Error("Extrato não encontrado");
-
-  return result;
-}
-
-export async function getStatementTransactions({ id }: { id: string }) {
-  const result = await db.query.statementTransactions.findMany({
-    where: eq(statementTransactions.statementId, id),
     with: {
-      statement: { with: { account: true, budget: true } },
-      category: true,
-      importedTransaction: {
-        with: {
-          account: true,
-          category: true,
-          budget: true,
-          transfer: { with: { account: true } },
-        },
+      account: true,
+      transactions: {
+        with: { account: true, category: true, budget: true, transfer: { with: { account: true } } },
       },
     },
   });
+
+  if (!result) throw new Error("Extrato não encontrado");
 
   return result;
 }
@@ -69,30 +50,24 @@ export async function updateStatement(statementId: string, data: Partial<Stateme
   return result[0];
 }
 
-export async function addStatementTransactions(statementId: string, transactions: ExtractedTransaction[]) {
-  const result = await db
-    .insert(statementTransactionsSchema)
-    .values(transactions.map((t) => ({ ...t, statementId })))
-    .returning();
-  return result;
-}
-
 export async function importTransactions(statementId: string) {
   const statement = await getStatement({ id: statementId });
+  const extractedTransactions = statement.aiResponse;
+  if (!extractedTransactions) throw new Error("Não há transações para importar");
 
-  const transactionsToImport = statement.statementTransactions.map((st) => ({
-    id: st.id,
-    date: st.date,
+  const transactionsToImport = extractedTransactions.map((t) => ({
+    date: t.date,
     accountId: statement.accountId,
     budgetId: statement.budgetId,
-    description: st.description,
-    title: st.title,
-    amount: st.amount,
-    categoryId: st.categoryId,
+    description: t.description,
+    title: t.title,
+    amount: t.amount,
+    categoryId: t.categoryId,
+    statementId,
   }));
 
-  const insertedCoreTransactions = await db.insert(transactions).values(transactionsToImport).returning();
-  return insertedCoreTransactions;
+  const insertedTransactions = await db.insert(transactions).values(transactionsToImport).returning();
+  return insertedTransactions;
 }
 
 export async function deleteStatement({ id }: { id: string }) {

@@ -56,7 +56,7 @@ export const validateStatementAction = validatedActionWithUser(uuidSchema, async
     }
 
     // update the statement status to reviewing
-    await updateStatement(data.id, { status: "reviewing" });
+    await updateStatement(data.id, { status: "imported" });
 
     return {
       success: true,
@@ -76,8 +76,8 @@ export async function deleteStatementAction({ id }: { id: string }) {
 
   try {
     const statement = await getStatement({ id });
-    if (statement.status === "reviewing" || statement.status === "completed") {
-      throw new Error("Não é possível excluir um extrato que está em revisão ou já foi validado");
+    if (statement.status === "imported") {
+      throw new Error("Não é possível excluir um extrato que já foi importado");
     }
 
     await deleteStatement({ id: statement.id });

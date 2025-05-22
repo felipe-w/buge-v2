@@ -9,7 +9,6 @@ import {
   categories,
   groups,
   statements,
-  statementTransactions,
   transactions,
 } from "@/lib/db/schemas";
 
@@ -124,9 +123,6 @@ export const NewStatementSchema = createInsertSchema(statements)
   });
 export type NewStatement = z.infer<typeof NewStatementSchema>;
 
-export const NewStatementTransactionSchema = createInsertSchema(statementTransactions);
-export type NewStatementTransaction = z.infer<typeof NewStatementTransactionSchema>;
-
 // Transactions Schema Zod Schemas
 const BaseTransactionSchemaFields = createInsertSchema(transactions, {
   amount: numericStringSchema,
@@ -165,8 +161,8 @@ export type NewCompensate = z.infer<typeof NewCompensateSchema>;
 
 // Extracted Transactions
 export const ExtractedTransactionSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data deve estar no formato YYYY-MM-DD" }),
-  title: z.string().min(1, { message: "Título é obrigatório" }),
+  date: z.string(),
+  title: z.string(),
   description: z.string().optional(),
   categoryId: z.string().optional(),
   categoryName: z.string().optional(),

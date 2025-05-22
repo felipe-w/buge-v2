@@ -2,9 +2,15 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 import { ArrowLeftRight, CircleDollarSign, ShoppingCart } from "lucide-react";
+import { TransactionType, TransactionWithAllJoins } from "./db/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function getTransactionType(transaction: TransactionWithAllJoins): TransactionType {
+  if (transaction.transferId) return "transfer";
+  return Number(transaction.amount) < 0 ? "expense" : "income";
 }
 
 // export function compensatedAmount(transaction: TransactionWithAllJoins) {
@@ -15,6 +21,13 @@ export function cn(...inputs: ClassValue[]) {
 
 //   return amount;
 // }
+
+export const toYYYYMMDD = (d: Date): string =>
+  [
+    d.getFullYear(), // full year
+    String(d.getMonth() + 1).padStart(2, "0"), // month  1-12 → 01-12
+    String(d.getDate()).padStart(2, "0"), // day    1-31 → 01-31
+  ].join("-");
 
 export function formatCurrency(amount: string | number, options?: Intl.NumberFormatOptions): string {
   if (typeof amount === "string") {

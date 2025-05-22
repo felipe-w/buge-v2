@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getGroupAccounts } from "@/server/data/accounts";
 import { getGroupStatements } from "@/server/data/statements";
 import { getCurrentUser } from "@/server/data/users";
+import { formatDateToPtBr } from "@/lib/utils";
 
 import { Heading } from "@/components/layout/heading";
 import { Button } from "@/components/ui/button";
@@ -23,10 +24,10 @@ export default async function StatementsPage() {
         <div key={statement.id}>
           <div className="flex items-center justify-between">
             <p>
-              {statement.createdAt?.toLocaleDateString()} - {statement.status} - {statement.account.name}
+              {formatDateToPtBr(statement.createdAt!)} - {statement.status} - {statement.account.name}
             </p>
             <div className="flex items-center gap-2">
-              {statement.status == "reviewing" && (
+              {statement.status == "imported" && (
                 <Link href={`/dashboard/statements/${statement.id}`}>
                   <Button variant="outline" size="icon">
                     <Eye size={16} />
@@ -34,9 +35,7 @@ export default async function StatementsPage() {
                 </Link>
               )}
               {statement.status == "validating" && <ValidateStatementDialog statement={statement} />}
-              {statement.status != "completed" && statement.status != "reviewing" && (
-                <DeleteStatementButton statementId={statement.id} />
-              )}
+              {statement.status != "imported" && <DeleteStatementButton statementId={statement.id} />}
             </div>
           </div>
         </div>
