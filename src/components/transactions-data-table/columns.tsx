@@ -3,7 +3,7 @@
 import { ColumnDef, createColumnHelper, FilterFn } from "@tanstack/react-table";
 import { DateRange } from "react-day-picker";
 
-import { TransactionWithAllJoins } from "@/lib/db/types";
+import { CategoryWithChildren, TransactionWithAllJoins } from "@/lib/db/types";
 import { categoryTypeConfig, cn, formatCurrency, formatDateToPtBr, getTransactionType, toYYYYMMDD } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { MoreHorizontal } from "lucide-react";
 import CategoryBadge from "../category-badge";
 import { Checkbox } from "../ui/checkbox";
 import { DataTableColumnHeader } from "./column-header";
+import { EditableCategoryCell } from "./editable-category-cell";
 
 const multiColumnFilterFn: FilterFn<TransactionWithAllJoins> = (row, columnId, filterValue) => {
   const amount = formatCurrency(row.original.amount);
@@ -134,14 +135,34 @@ export const columns = [
   columnHelper.accessor("category.id", {
     id: "category",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Categoria" />,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
+      const meta = table.options.meta as {
+        categories: CategoryWithChildren[];
+        editingTransactionId: string | null;
+        onEditStart: (id: string) => void;
+        onEditEnd: () => void;
+      };
+
+      if (!meta) {
+        // Fallback to original display if meta is not available
+        return (
+          <div className="flex items-center gap-2">
+            {row.original.category && <CategoryBadge category={row.original.category} />}
+          </div>
+        );
+      }
+
       return (
-        <div className="flex items-center gap-2">
-          {row.original.category && <CategoryBadge category={row.original.category} />}
-        </div>
+        <EditableCategoryCell
+          transaction={row.original}
+          categories={meta.categories}
+          isEditing={meta.editingTransactionId === row.original.id}
+          onEditStart={() => meta.onEditStart(row.original.id)}
+          onEditEnd={meta.onEditEnd}
+        />
       );
     },
-    size: 140,
+    size: 180,
     filterFn: categoryFilterFn,
     sortingFn: (rowA, rowB) => {
       const categoryA = rowA.original.category?.name ?? "";

@@ -48,6 +48,8 @@ export function TransactionsDataTable({
   const [sorting, setSorting] = useQueryState("sort", sortingParser);
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+
   const [pagination, setPagination] = useQueryStates(
     {
       pageIndex: parseAsInteger.withDefault(0),
@@ -85,9 +87,24 @@ export function TransactionsDataTable({
     return filters;
   }, [dateRange, categoryId, accountId, transactionType, titleColumnFilter]);
 
+  // Handlers for category editing
+  const handleEditStart = (transactionId: string) => {
+    setEditingTransactionId(transactionId);
+  };
+
+  const handleEditEnd = () => {
+    setEditingTransactionId(null);
+  };
+
   const table = useReactTable({
     data,
     columns,
+    meta: {
+      categories,
+      editingTransactionId,
+      onEditStart: handleEditStart,
+      onEditEnd: handleEditEnd,
+    },
     state: {
       pagination: {
         pageIndex: pagination.pageIndex,

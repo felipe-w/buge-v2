@@ -148,9 +148,14 @@ export const NewTransactionSchema = BaseTransactionSchemaFields.superRefine((dat
 });
 
 export const EditTransactionSchema = BaseTransactionSchemaFields.partial().required({ id: true });
+export const EditTransactionCategorySchema = z.object({
+  id: z.string().uuid(),
+  categoryId: z.string().uuid(),
+});
 
 export type NewTransaction = z.infer<typeof NewTransactionSchema>;
 export type EditTransaction = z.infer<typeof EditTransactionSchema>;
+export type EditTransactionCategory = z.infer<typeof EditTransactionCategorySchema>;
 
 export const NewCompensateSchema = z.object({
   firstId: z.string().uuid(),

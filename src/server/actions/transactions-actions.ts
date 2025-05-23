@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { validatedActionWithUser } from "@/lib/validate-form-data";
 import {
+  EditTransactionCategorySchema,
   EditTransactionSchema,
   FormState,
   NewCompensateSchema,
@@ -16,6 +17,7 @@ import {
   createTransaction,
   deleteTransaction,
   editTransaction,
+  editTransactionCategory,
   uncompensateTransaction,
 } from "../data/transactions";
 
@@ -125,3 +127,24 @@ export const uncompensateTransactionAction = validatedActionWithUser(uuidSchema,
     };
   }
 });
+
+export const editTransactionCategoryAction = validatedActionWithUser(
+  EditTransactionCategorySchema,
+  async (data): Promise<FormState> => {
+    try {
+      await editTransactionCategory({ id: data.id, categoryId: data.categoryId });
+      revalidatePath("/dashboard/transactions");
+
+      return {
+        success: true,
+        message: "Categoria da transação editada com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "Erro ao editar categoria da transação",
+        errors: { server: [error instanceof Error ? error.message : "Erro desconhecido no servidor"] },
+      };
+    }
+  },
+);

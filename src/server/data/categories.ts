@@ -21,7 +21,7 @@ export async function getGroupCategories({ groupId }: { groupId: string }) {
   return result;
 }
 
-export async function getCategoryById({ id }: { id: string }) {
+export async function getCategory({ id }: { id: string }) {
   const result = await db.query.categories.findFirst({ where: eq(categories.id, id), with: { children: true } });
 
   if (!result) throw new Error("Categoria não encontrada");
@@ -34,11 +34,11 @@ export async function createCategory({ name, groupId, type, parentId }: NewCateg
 }
 
 export async function editCategory({ id, name, parentId }: EditCategory) {
-  const category = await getCategoryById({ id });
+  const category = await getCategory({ id });
   if (!category) throw new Error("Categoria não encontrada.");
 
   if (parentId) {
-    const parentCategory = await getCategoryById({ id: parentId });
+    const parentCategory = await getCategory({ id: parentId });
     if (!parentCategory) throw new Error("Categoria principal não encontrada.");
 
     // if the parent category is standalone (has no children) or has a parent_id, it can't be a parent

@@ -3,10 +3,12 @@ import { eq, inArray, or } from "drizzle-orm";
 
 import { db } from "@/lib/db/drizzle";
 import { transactions } from "@/lib/db/schemas";
+import { getTransactionType } from "@/lib/utils";
 import { EditTransaction, NewTransaction } from "@/lib/validations";
 
 import { calculateCompensatedAmounts } from "../services/transactions-services";
 import { getGroupAccounts } from "./accounts";
+import { getCategory } from "./categories";
 
 export async function getGroupTransactions({ groupId }: { groupId: string }) {
   const accounts = await getGroupAccounts({ groupId });
@@ -212,4 +214,23 @@ export async function updateEffectiveAmounts({ compensationId }: { compensationI
         .where(eq(transactions.id, transaction.id));
     }
   });
+}
+
+export async function editTransactionCategory({ id, categoryId }: { id: string; categoryId: string }) {
+  const transaction = await getTransaction({ id });
+  const category = await getCategory({ id: categoryId });
+
+  // confirm if the category has the same type as the transaction
+  const transactionType = getTransactionType(transaction);
+
+  if (category.type !== transactionType) {
+    throw new Error("Categoria e transação não podem ter tipos diferentes.");
+  }
+
+  // confirm if the category has no children
+  if (category.children.length > 0) {
+    throw new Error("Categoria não pode ter subcategorias.");
+  }
+
+  await db.update(transactions).set({ categoryId }).where(eq(transactions.id, id));
 }
